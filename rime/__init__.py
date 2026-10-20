@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from rime.color import add_color_args, apply_color_args, handle_color_args
 from rime.engine import UI, ui
 from rime.inputs import confirm_input, prompt_input
 from rime.menus import multiselect_menu, select_menu
@@ -23,6 +24,9 @@ __version__ = "0.1.0"
 __all__ = [
     "UI",
     "ui",
+    "add_color_args",
+    "handle_color_args",
+    "apply_color_args",
     "Styler",
     "Spinner",
     "spinner_context",

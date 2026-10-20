@@ -43,6 +43,10 @@ class UI:
         self.styler.set_color_mode(mode)
 
     @property
+    def use_color(self) -> bool:
+        return self.styler.use_color
+
+    @property
     def stream(self) -> TextIO:
         return self.styler.stream
 
