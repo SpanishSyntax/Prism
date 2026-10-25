@@ -1,7 +1,7 @@
 import io
 import time
-from rime.spinner import Spinner, spinner_context
-from rime.styling import Styler
+from prism.spinner import Spinner, spinner_context
+from prism.styling import Styler
 
 
 def test_spinner_non_tty():

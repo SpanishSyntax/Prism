@@ -1,4 +1,4 @@
-"""Command line entrypoint and component showcase for Rime."""
+"""Command line entrypoint and component showcase for Prism."""
 
 from __future__ import annotations
 
@@ -6,13 +6,13 @@ import argparse
 import sys
 import time
 
-from rime.engine import UI, ui
+from prism.engine import UI, ui
 
 
 def run_showcase() -> int:
-    """Runs an interactive demonstration showcasing all Rime UI components."""
+    """Runs an interactive demonstration showcasing all Prism UI components."""
     ui.panel(
-        "RIME CLI DESIGN SYSTEM",
+        "PRISM CLI DESIGN SYSTEM",
         [
             ui.bold_cyan("Unified Terminal UI Framework for Frost Icebergs"),
             ui.dim("Zero dependencies • ANSI styling • Bounding boxes • Spinners • Menus"),
@@ -41,10 +41,10 @@ def run_showcase() -> int:
     ui.error_panel(
         "Evaluation Failed",
         [
-            "error: attribute 'rime' missing in pkgs.python3Packages",
+            "error: attribute 'prism' missing in pkgs.python3Packages",
             "",
             "       at /etc/nixos/flake.nix:42:15:",
-            "          42|   buildInputs = [ pkgs.python3Packages.rime ];",
+            "          42|   buildInputs = [ pkgs.python3Packages.prism ];",
             "            |                 ^",
         ],
     )
@@ -53,7 +53,7 @@ def run_showcase() -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        prog="rime",
+        prog="prism",
         description="Unified, Zero-Dependency CLI Design System & Terminal UI Framework",
     )
     parser.add_argument(
@@ -70,8 +70,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.version:
-        from rime import __version__
-        print(f"rime {__version__}")
+        from prism import __version__
+        print(f"prism {__version__}")
         return 0
 
     if args.demo or len(sys.argv) == 1:

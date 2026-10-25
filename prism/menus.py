@@ -5,8 +5,8 @@ from __future__ import annotations
 import sys
 from typing import Any, Sequence, TextIO
 
-from rime.styling import Styler
-from rime.terminal import (
+from prism.styling import Styler
+from prism.terminal import (
     get_terminal_size,
     read_key,
     strip_ansi,

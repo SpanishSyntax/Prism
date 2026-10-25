@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "rime"
+name = "prism"
 version = "0.1.0"
 description = "Crystalline zero-dependency terminal UI, ANSI styling, panels, and interactive menu engine"
 readme = "README.md"
@@ -29,11 +29,11 @@ test = [
 ]
 
 [project.scripts]
-rime = "rime.cli:main"
+prism = "prism.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["rime*"]
+include = ["prism*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

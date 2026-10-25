@@ -1,5 +1,5 @@
 import io
-from rime.engine import UI, ui
+from prism.engine import UI, ui
 
 
 def test_ui_facade():
@@ -17,6 +17,7 @@ def test_ui_facade():
 
 def test_global_ui_instance():
     assert ui is not None
+    assert "🌈" in ui.badge()
     assert callable(ui.panel)
     assert callable(ui.spinner)
     assert callable(ui.select)

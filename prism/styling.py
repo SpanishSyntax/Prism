@@ -30,8 +30,8 @@ class Styler:
 
     def __init__(
         self,
-        app_name: str = "rime",
-        icon: str = "🧊",
+        app_name: str = "prism",
+        icon: str = "🌈",
         badge_color: str = "1;36",
         color_mode: str = "auto",
         stream: TextIO | None = None,

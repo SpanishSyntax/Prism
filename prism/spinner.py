@@ -7,7 +7,7 @@ import threading
 from contextlib import contextmanager
 from typing import Iterator, TextIO
 
-from rime.styling import Styler
+from prism.styling import Styler
 
 
 class Spinner:

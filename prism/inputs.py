@@ -6,7 +6,7 @@ import getpass
 import sys
 from typing import TextIO
 
-from rime.styling import Styler
+from prism.styling import Styler
 
 
 def prompt_input(

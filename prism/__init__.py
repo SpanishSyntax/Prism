@@ -1,15 +1,15 @@
-"""Rime: Unified, Zero-Dependency CLI Design System & Terminal UI Framework."""
+"""Prism: Unified, Zero-Dependency CLI Design System & Terminal UI Framework."""
 
 from __future__ import annotations
 
-from rime.color import add_color_args, apply_color_args, handle_color_args
-from rime.engine import UI, ui
-from rime.inputs import confirm_input, prompt_input
-from rime.menus import multiselect_menu, select_menu
-from rime.panels import render_error_panel, render_panel
-from rime.spinner import Spinner, spinner_context
-from rime.styling import Styler, detect_color_support
-from rime.terminal import (
+from prism.color import add_color_args, apply_color_args, handle_color_args
+from prism.engine import UI, ui
+from prism.inputs import confirm_input, prompt_input
+from prism.menus import multiselect_menu, select_menu
+from prism.panels import render_error_panel, render_panel
+from prism.spinner import Spinner, spinner_context
+from prism.styling import Styler, detect_color_support
+from prism.terminal import (
     cbreak_mode,
     get_key,
     get_terminal_columns,

@@ -1,7 +1,7 @@
 import io
-from rime.panels import render_error_panel, render_panel
-from rime.styling import Styler
-from rime.terminal import strip_ansi
+from prism.panels import render_error_panel, render_panel
+from prism.styling import Styler
+from prism.terminal import strip_ansi
 
 
 def test_render_panel():

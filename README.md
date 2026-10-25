@@ -1,4 +1,4 @@
-# 🧊 Rime
+# 🌈 Prism
 
 > **Crystalline, zero-dependency CLI design system and terminal UI engine for Python & Nix.**
 
@@ -6,7 +6,7 @@
 [![Built with Nix](https://img.shields.io/badge/Built_with-Nix-5277C3.svg?logo=nixos&logoColor=white)](flake.nix)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-3776AB.svg?logo=python&logoColor=white)](pyproject.toml)
 
-Rime provides the shared terminal design language, logging primitives, bounding boxes, braille spinners, and interactive menus powering the **Frost** iceberg ecosystem (`Folio`, `Cryo`, `Borealis`, `Firn`, `Glaze`, `Flaker`).
+Prism provides the shared terminal design language, logging primitives, bounding boxes, braille spinners, and interactive menus powering the **Frost** iceberg ecosystem (`Folio`, `Cryo`, `Borealis`, `Firn`, `Glaze`, `Flaker`).
 
 ---
 
@@ -25,12 +25,12 @@ Rime provides the shared terminal design language, logging primitives, bounding 
 
 ### Try the Interactive Demo
 ```bash
-nix run github:SpanishSyntax/Rime -- --demo
+nix run github:SpanishSyntax/Prism -- --demo
 ```
 
 Or from a local clone:
 ```bash
-nix develop -c python -m rime --demo
+nix develop -c python -m prism --demo
 ```
 
 ---
@@ -39,7 +39,7 @@ nix develop -c python -m rime --demo
 
 ### Basic Status & Badges
 ```python
-from rime import ui
+from prism import ui
 
 # Status logging with icons
 ui.success("Derivation built successfully")
@@ -51,7 +51,7 @@ ui.error("Subprocess terminated unexpectedly")
 
 ### Rounded Panels & Dashboards
 ```python
-from rime import ui
+from prism import ui
 
 ui.panel(
     "FLEET STATUS",
@@ -67,12 +67,12 @@ ui.panel(
 
 ### Diagnostic Error Box
 ```python
-from rime import ui
+from prism import ui
 
 ui.error_panel(
     "Evaluation Error",
     [
-        "error: attribute 'rime' missing in pkgs.python3Packages",
+        "error: attribute 'prism' missing in pkgs.python3Packages",
         "       at /etc/nixos/flake.nix:42:15",
     ],
 )
@@ -81,7 +81,7 @@ ui.error_panel(
 ### Threaded Spinner
 ```python
 import time
-from rime import ui
+from prism import ui
 
 with ui.spinner("Resolving flake inputs..."):
     time.sleep(1.5)
@@ -90,7 +90,7 @@ ui.success("Inputs materialized")
 
 ### Interactive Single-Select Menu
 ```python
-from rime import ui
+from prism import ui
 
 choice = ui.select(
     "Select target format",
@@ -105,7 +105,7 @@ print(f"Selected: {choice}")
 
 ### Interactive Multi-Select Menu
 ```python
-from rime import ui
+from prism import ui
 
 # Space to toggle, 'a' to toggle all, Enter to confirm
 selected = ui.multiselect(
@@ -122,7 +122,7 @@ selected = ui.multiselect(
 
 ### Prompts & Confirmations
 ```python
-from rime import ui
+from prism import ui
 
 name = ui.prompt("Project name", default="frost-workspace")
 if ui.confirm("Initialize git repository?", default=True):
@@ -136,7 +136,7 @@ if ui.confirm("Initialize git repository?", default=True):
 You can instantiate customized `UI` facades for any project with specific badges and icons:
 
 ```python
-from rime import UI
+from prism import UI
 
 folio_ui = UI(app_name="folio", icon="❄️", badge_color="1;34")
 borealis_ui = UI(app_name="borealis", icon="🌌", badge_color="1;35")
@@ -150,25 +150,25 @@ folio_ui.success("Document assembled")
 ## ❄️ Nix Integration
 
 ### Flake Input
-Add Rime to your `flake.nix`:
+Add Prism to your `flake.nix`:
 ```nix
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    rime = {
-      url = "github:SpanishSyntax/Rime";
+    prism = {
+      url = "github:SpanishSyntax/Prism";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { self, nixpkgs, rime, ... }: {
+  outputs = { self, nixpkgs, prism, ... }: {
     # Consume as Python package via overlay
     nixosConfigurations.workstation = nixpkgs.lib.nixosSystem {
       modules = [
         {
-          nixpkgs.overlays = [ rime.overlays.default ];
+          nixpkgs.overlays = [ prism.overlays.default ];
           environment.systemPackages = [
-            # pkgs.python3Packages.rime is now available
+            # pkgs.python3Packages.prism is now available
           ];
         }
       ];
@@ -180,9 +180,9 @@ Add Rime to your `flake.nix`:
 ### Home Manager Module
 ```nix
 {
-  imports = [ inputs.rime.homeManagerModules.default ];
+  imports = [ inputs.prism.homeManagerModules.default ];
 
-  programs.rime.enable = true;
+  programs.prism.enable = true;
 }
 ```
 

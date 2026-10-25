@@ -5,8 +5,8 @@ from __future__ import annotations
 import sys
 from typing import Sequence, TextIO
 
-from rime.styling import Styler
-from rime.terminal import get_terminal_columns, strip_ansi, visual_len
+from prism.styling import Styler
+from prism.terminal import get_terminal_columns, strip_ansi, visual_len
 
 
 def render_panel(

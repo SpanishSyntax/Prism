@@ -7,7 +7,7 @@ import sys
 from typing import TYPE_CHECKING, Sequence
 
 if TYPE_CHECKING:
-    from rime.engine import UI
+    from prism.engine import UI
 
 
 def add_color_args(parser: argparse.ArgumentParser) -> None:
@@ -37,7 +37,7 @@ def handle_color_args(
     
     Returns the resolved color mode: 'auto', 'always', or 'never'.
     """
-    from rime.engine import ui as default_ui
+    from prism.engine import ui as default_ui
 
     target_ui = ui if ui is not None else default_ui
     args = argv if argv is not None else sys.argv[1:]
@@ -67,7 +67,7 @@ def apply_color_args(
     Applies parsed arguments (--color and --no-color) to a UI instance.
     Returns the resolved color mode: 'auto', 'always', or 'never'.
     """
-    from rime.engine import ui as default_ui
+    from prism.engine import ui as default_ui
 
     target_ui = ui if ui is not None else default_ui
     if getattr(args, "no_color", False):

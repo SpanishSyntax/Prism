@@ -1,6 +1,6 @@
 import io
-from rime.inputs import confirm_input, prompt_input
-from rime.styling import Styler
+from prism.inputs import confirm_input, prompt_input
+from prism.styling import Styler
 
 
 def test_prompt_input_default(monkeypatch):

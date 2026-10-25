@@ -1,6 +1,6 @@
 import argparse
-from rime.color import add_color_args, apply_color_args, handle_color_args
-from rime.engine import UI
+from prism.color import add_color_args, apply_color_args, handle_color_args
+from prism.engine import UI
 
 
 def test_add_color_args():

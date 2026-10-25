@@ -5,12 +5,12 @@ from __future__ import annotations
 from contextlib import contextmanager
 from typing import Any, Iterator, Sequence, TextIO
 
-from rime.inputs import confirm_input, prompt_input
-from rime.menus import multiselect_menu, select_menu
-from rime.panels import render_error_panel, render_panel
-from rime.spinner import Spinner
-from rime.styling import Styler
-from rime.terminal import get_terminal_columns, strip_ansi, visual_len
+from prism.inputs import confirm_input, prompt_input
+from prism.menus import multiselect_menu, select_menu
+from prism.panels import render_error_panel, render_panel
+from prism.spinner import Spinner
+from prism.styling import Styler
+from prism.terminal import get_terminal_columns, strip_ansi, visual_len
 
 
 class UI:
@@ -21,8 +21,8 @@ class UI:
 
     def __init__(
         self,
-        app_name: str = "rime",
-        icon: str = "🧊",
+        app_name: str = "prism",
+        icon: str = "🌈",
         badge_color: str = "1;36",
         stream: TextIO | None = None,
         color_mode: str = "auto",

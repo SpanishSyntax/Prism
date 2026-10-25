@@ -1,6 +1,6 @@
 import io
-from rime.menus import fit_line, multiselect_menu, normalize_options, select_menu
-from rime.styling import Styler
+from prism.menus import fit_line, multiselect_menu, normalize_options, select_menu
+from prism.styling import Styler
 
 
 def test_normalize_options():

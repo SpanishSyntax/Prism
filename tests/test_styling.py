@@ -1,5 +1,5 @@
 import io
-from rime.styling import Styler, detect_color_support
+from prism.styling import Styler, detect_color_support
 
 
 def test_detect_color_support(monkeypatch):

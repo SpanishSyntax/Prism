@@ -1,5 +1,5 @@
 {
-  description = "Rime - Crystalline Zero-Dependency Terminal UI, Panels & Interactive Menu Engine";
+  description = "Prism - Crystalline Zero-Dependency Terminal UI, Panels & Interactive Menu Engine";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -17,8 +17,8 @@
       pkgs = import nixpkgs {inherit system;};
       lib = pkgs.lib;
 
-      rimePackage = pkgs.python3Packages.buildPythonPackage {
-        pname = "rime";
+      prismPackage = pkgs.python3Packages.buildPythonPackage {
+        pname = "prism";
         version = "0.1.0";
         src = ./.;
         pyproject = true;
@@ -35,25 +35,25 @@
 
         meta = with lib; {
           description = "Crystalline zero-dependency terminal UI, ANSI styling, panels, and interactive menu engine";
-          homepage = "https://github.com/SpanishSyntax/Rime";
+          homepage = "https://github.com/SpanishSyntax/Prism";
           license = licenses.mit;
-          mainProgram = "rime";
+          mainProgram = "prism";
         };
       };
     in {
       packages = {
-        default = rimePackage;
-        rime = rimePackage;
+        default = prismPackage;
+        prism = prismPackage;
       };
 
       apps = {
         default = {
           type = "app";
-          program = "${rimePackage}/bin/rime";
+          program = "${prismPackage}/bin/prism";
         };
-        rime = {
+        prism = {
           type = "app";
-          program = "${rimePackage}/bin/rime";
+          program = "${prismPackage}/bin/prism";
         };
       };
 
@@ -62,7 +62,7 @@
           python3
           python3Packages.setuptools
           python3Packages.pytest
-          rimePackage
+          prismPackage
         ];
       };
     })
@@ -71,8 +71,8 @@
         default = final: prev: {
           pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
             (pyFinal: pyPrev: {
-              rime = pyFinal.buildPythonPackage {
-                pname = "rime";
+              prism = pyFinal.buildPythonPackage {
+                pname = "prism";
                 version = "0.1.0";
                 src = self;
                 pyproject = true;
@@ -82,28 +82,28 @@
               };
             })
           ];
-          rime = self.packages.${prev.stdenv.hostPlatform.system}.default;
+          prism = self.packages.${prev.stdenv.hostPlatform.system}.default;
         };
-        rime = self.overlays.default;
+        prism = self.overlays.default;
       };
 
       nixosModules = {
-        default = self.nixosModules.rime;
-        rime = {
+        default = self.nixosModules.prism;
+        prism = {
           config,
           lib,
           pkgs,
           ...
         }: let
-          cfg = config.programs.rime;
+          cfg = config.programs.prism;
           system = pkgs.stdenv.hostPlatform.system;
         in {
-          options.programs.rime = {
-            enable = lib.mkEnableOption "Rime - Crystalline terminal UI toolkit";
+          options.programs.prism = {
+            enable = lib.mkEnableOption "Prism - Crystalline terminal UI toolkit";
             package = lib.mkOption {
               type = lib.types.package;
               default = self.packages.${system}.default;
-              description = "The Rime package to install.";
+              description = "The Prism package to install.";
             };
           };
           config = lib.mkIf cfg.enable {
@@ -113,22 +113,22 @@
       };
 
       homeManagerModules = {
-        default = self.homeManagerModules.rime;
-        rime = {
+        default = self.homeManagerModules.prism;
+        prism = {
           config,
           lib,
           pkgs,
           ...
         }: let
-          cfg = config.programs.rime;
+          cfg = config.programs.prism;
           system = pkgs.stdenv.hostPlatform.system;
         in {
-          options.programs.rime = {
-            enable = lib.mkEnableOption "Rime - Crystalline terminal UI toolkit";
+          options.programs.prism = {
+            enable = lib.mkEnableOption "Prism - Crystalline terminal UI toolkit";
             package = lib.mkOption {
               type = lib.types.package;
               default = self.packages.${system}.default;
-              description = "The Rime package to install.";
+              description = "The Prism package to install.";
             };
           };
           config = lib.mkIf cfg.enable {

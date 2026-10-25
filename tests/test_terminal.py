@@ -1,5 +1,5 @@
 import re
-from rime.terminal import get_terminal_columns, get_terminal_size, strip_ansi, visual_len
+from prism.terminal import get_terminal_columns, get_terminal_size, strip_ansi, visual_len
 
 
 def test_strip_ansi():
