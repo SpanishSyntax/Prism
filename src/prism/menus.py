@@ -98,7 +98,10 @@ def select_menu(
             extra = f" - {desc}" if desc else ""
             out.write(f"  [{idx}] {lbl}{extra}\n")
         out.flush()
-        ans = input("Choice [1]: ").strip()
+        try:
+            ans = input("Choice [1]: ").strip()
+        except (EOFError, OSError):
+            ans = ""
         if ans.isdigit() and 1 <= int(ans) <= len(items):
             return items[int(ans) - 1][0]
         return items[0][0]
@@ -239,7 +242,10 @@ def multiselect_menu(
             extra = f" - {desc}" if desc else ""
             out.write(f"  {mark} [{idx}] {lbl}{extra}\n")
         out.flush()
-        ans = input("Select numbers (comma/space separated): ").strip()
+        try:
+            ans = input("Select numbers (comma/space separated): ").strip()
+        except (EOFError, OSError):
+            ans = ""
         chosen = []
         for tok in ans.replace(",", " ").split():
             if tok.isdigit() and 1 <= int(tok) <= len(all_items):
