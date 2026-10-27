@@ -45,3 +45,9 @@ def test_multiselect_menu_non_tty(monkeypatch):
     monkeypatch.setattr("builtins.input", lambda _: "1, 3")
     res = multiselect_menu("Choose multiple", options, styler=st, stream=buf)
     assert res == ["a", "c"]
+
+    # When input is empty, keep preselected
+    monkeypatch.setattr("builtins.input", lambda _: "")
+    res_default = multiselect_menu("Choose multiple", options, preselected=["b"], styler=st, stream=buf)
+    assert res_default == ["b"]
+

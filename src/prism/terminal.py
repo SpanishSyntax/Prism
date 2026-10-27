@@ -62,7 +62,11 @@ def io_error() -> type[Exception]:
     return (io.UnsupportedOperation, OSError) if "io" in globals() else OSError
 
 
-def read_key(stream: TextIO | None = None, timeout: float = 0.025) -> str:
+def read_key(
+    stream: TextIO | None = None,
+    timeout: float = 0.025,
+    raw_text_mode: bool = False,
+) -> str:
     """
     Reads a single raw keypress or ANSI escape sequence directly from stdin.
     Uses os.read() without TextIOWrapper buffering to ensure escape sequences
@@ -129,14 +133,18 @@ def read_key(stream: TextIO | None = None, timeout: float = 0.025) -> str:
             return "ctrl_c"
         if raw == b"\x04":
             return "ctrl_d"
-        if raw in (b"k", b"K"):
-            return "up"
-        if raw in (b"j", b"J"):
-            return "down"
-        if raw in (b"a", b"A"):
-            return "a"
-        if raw in (b"q", b"Q"):
-            return "q"
+        if raw == b"/":
+            return "/"
+
+        if not raw_text_mode:
+            if raw in (b"k", b"K"):
+                return "up"
+            if raw in (b"j", b"J"):
+                return "down"
+            if raw in (b"a", b"A"):
+                return "a"
+            if raw in (b"q", b"Q"):
+                return "q"
 
         return raw.decode("utf-8", errors="ignore")
     finally:

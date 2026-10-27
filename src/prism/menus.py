@@ -216,15 +216,17 @@ def multiselect_menu(
     preselected: Sequence[str] | set[str] | None = None,
     styler: Styler | None = None,
     stream: TextIO | None = None,
+    searchable: bool = True,
 ) -> list[str]:
     """
-    Multi-select interactive menu with arrow key navigation and spacebar toggling.
+    Multi-select interactive menu with arrow key navigation, spacebar toggling,
+    and optional live `/` search filter.
     Width & height aware: truncates wide lines and paginates lists to fit any terminal size.
     """
     st = styler or Styler()
     out = stream or st.stream
-    items = normalize_options(options)
-    if not items:
+    all_items = normalize_options(options)
+    if not all_items:
         return []
 
     selected_keys: set[str] = set(preselected) if preselected else set()
@@ -232,7 +234,7 @@ def multiselect_menu(
     # Fallback for non-interactive / non-TTY
     if not sys.stdin.isatty():
         out.write(f"\n{st.badge()} {st.bold(title)}\n")
-        for idx, (k, lbl, desc) in enumerate(items, 1):
+        for idx, (k, lbl, desc) in enumerate(all_items, 1):
             mark = "[*]" if k in selected_keys else "[ ]"
             extra = f" - {desc}" if desc else ""
             out.write(f"  {mark} [{idx}] {lbl}{extra}\n")
@@ -240,13 +242,25 @@ def multiselect_menu(
         ans = input("Select numbers (comma/space separated): ").strip()
         chosen = []
         for tok in ans.replace(",", " ").split():
-            if tok.isdigit() and 1 <= int(tok) <= len(items):
-                chosen.append(items[int(tok) - 1][0])
-        return chosen if chosen else list(selected_keys)
+            if tok.isdigit() and 1 <= int(tok) <= len(all_items):
+                chosen.append(all_items[int(tok) - 1][0])
+        return chosen if chosen else [k for k, _, _ in all_items if k in selected_keys]
 
     current = 0
     scroll_offset = 0
     rendered_lines = 0
+    search_query = ""
+    searching = False
+
+    def _filter_items() -> list[tuple[str, str, str]]:
+        if not search_query.strip():
+            return all_items
+        tokens = search_query.lower().split()
+        return [
+            item
+            for item in all_items
+            if all(tok in f"{item[0]} {item[1]} {item[2]}".lower() for tok in tokens)
+        ]
 
     # Hide cursor
     out.write("\033[?25l")
@@ -254,11 +268,17 @@ def multiselect_menu(
 
     try:
         while True:
+            items = _filter_items()
+            if items:
+                current = max(0, min(current, len(items) - 1))
+            else:
+                current = 0
+
             cols, term_rows = get_terminal_size(fallback=(80, 24))
             max_w = max(25, cols - 1)
 
             # Available vertical rows for items
-            max_visible = max(3, min(len(items), term_rows - 5, 10))
+            max_visible = max(3, min(max(1, len(items)), term_rows - 6, 12))
 
             # Keep active item inside scroll window
             if current < scroll_offset:
@@ -268,50 +288,75 @@ def multiselect_menu(
             scroll_offset = max(0, min(scroll_offset, max(0, len(items) - max_visible)))
 
             lines = []
-            raw_title = f"{st.badge()} {st.bold(title)}"
+            selected_count = sum(1 for k, _, _ in all_items if k in selected_keys)
+            raw_title = f"{st.badge()} {st.bold(title)} {st.dim(f'({selected_count}/{len(all_items)} selected)')}"
             lines.append(
                 raw_title if visual_len(raw_title) <= max_w else raw_title[:max_w]
             )
 
-            raw_help = st.dim(
-                "  (↑/↓: navigate, Space: toggle, a: all, Enter: confirm, q/Ctrl+C: cancel)"
-            )
-            lines.append(
-                raw_help
-                if visual_len(raw_help) <= max_w
-                else st.dim("  (↑/↓: nav, Space: toggle, Enter: ok)")
-            )
+            if searching:
+                search_bar = (
+                    f"  {st.bold_cyan('🔍 Search:')} {st.bold(search_query)}█ "
+                    f"{st.dim('(type to filter, Enter/Esc: done)')}"
+                )
+                lines.append(
+                    search_bar
+                    if visual_len(search_bar) <= max_w
+                    else f"  {st.bold_cyan('🔍 Search:')} {st.bold(search_query)}█"
+                )
+            else:
+                filter_badge = (
+                    f"  {st.yellow(f'Filter: \"{search_query}\"')} {st.dim('(/ to edit, Esc to clear)')} | "
+                    if search_query
+                    else "  "
+                )
+                search_hint = "  /: search  " if searchable else "  "
+                raw_help = filter_badge + st.dim(
+                    f"↑/↓: nav  Space: toggle{search_hint}a: all  Enter: confirm  q: quit"
+                )
+                lines.append(
+                    raw_help
+                    if visual_len(raw_help) <= max_w
+                    else st.dim("  (↑/↓: nav, Space: toggle, Enter: ok)")
+                )
             lines.append("")
 
-            # Up indicator if scrolled
-            if scroll_offset > 0:
-                lines.append(st.dim(f"  ▲ ({scroll_offset} more above...)"))
-
-            # Visible items
-            visible_items = items[scroll_offset : scroll_offset + max_visible]
-            for idx_offset, (key, label, desc) in enumerate(visible_items):
-                actual_idx = scroll_offset + idx_offset
-                is_checked = key in selected_keys
-                check = st.bold_green("[✔]") if is_checked else st.dim("[ ]")
-
-                if actual_idx == current:
-                    pointer = st.bold_cyan("❯")
-                    styled_lbl = (
-                        st.bold_cyan(label) if is_checked else st.bold(label)
-                    )
-                else:
-                    pointer = " "
-                    styled_lbl = st.green(label) if is_checked else label
-
-                prefix = f"  {pointer} {check} "
+            if not items:
                 lines.append(
-                    fit_line(prefix, styled_lbl, label, desc, max_w, styler=st)
+                    st.yellow(
+                        f"  No items match '{search_query}'. Press Esc or Backspace to clear filter."
+                    )
                 )
+            else:
+                # Up indicator if scrolled
+                if scroll_offset > 0:
+                    lines.append(st.dim(f"  ▲ ({scroll_offset} more above...)"))
 
-            # Down indicator if more below
-            if scroll_offset + max_visible < len(items):
-                remaining = len(items) - (scroll_offset + max_visible)
-                lines.append(st.dim(f"  ▼ ({remaining} more below...)"))
+                # Visible items
+                visible_items = items[scroll_offset : scroll_offset + max_visible]
+                for idx_offset, (key, label, desc) in enumerate(visible_items):
+                    actual_idx = scroll_offset + idx_offset
+                    is_checked = key in selected_keys
+                    check = st.bold_green("[✔]") if is_checked else st.dim("[ ]")
+
+                    if actual_idx == current:
+                        pointer = st.bold_cyan("❯")
+                        styled_lbl = (
+                            st.bold_cyan(label) if is_checked else st.bold(label)
+                        )
+                    else:
+                        pointer = " "
+                        styled_lbl = st.green(label) if is_checked else label
+
+                    prefix = f"  {pointer} {check} "
+                    lines.append(
+                        fit_line(prefix, styled_lbl, label, desc, max_w, styler=st)
+                    )
+
+                # Down indicator if more below
+                if scroll_offset + max_visible < len(items):
+                    remaining = len(items) - (scroll_offset + max_visible)
+                    lines.append(st.dim(f"  ▼ ({remaining} more below...)"))
 
             # Clear previous frame rows and redraw in-place
             if rendered_lines > 0:
@@ -321,22 +366,59 @@ def multiselect_menu(
             out.flush()
             rendered_lines = len(lines)
 
-            key = read_key()
-            if key in ("up", "k"):
+            key = read_key(raw_text_mode=searching)
+
+            if searching:
+                if key == "enter":
+                    searching = False
+                elif key == "esc":
+                    search_query = ""
+                    searching = False
+                    current = 0
+                    scroll_offset = 0
+                elif key == "backspace":
+                    search_query = search_query[:-1]
+                    current = 0
+                    scroll_offset = 0
+                elif key == "up" and items:
+                    current = (current - 1) % len(items)
+                elif key == "down" and items:
+                    current = (current + 1) % len(items)
+                elif key in ("ctrl_c", "ctrl_d"):
+                    searching = False
+                elif len(key) == 1 and key.isprintable():
+                    search_query += key
+                    current = 0
+                    scroll_offset = 0
+                continue
+
+            # Normal navigation mode
+            if key in ("up", "k") and items:
                 current = (current - 1) % len(items)
-            elif key in ("down", "j"):
+            elif key in ("down", "j") and items:
                 current = (current + 1) % len(items)
-            elif key == "space":
+            elif searchable and key == "/":
+                searching = True
+            elif searchable and key == "backspace" and search_query:
+                search_query = search_query[:-1]
+                current = 0
+                scroll_offset = 0
+            elif searchable and key == "esc" and search_query:
+                search_query = ""
+                current = 0
+                scroll_offset = 0
+            elif key == "space" and items:
                 cur_key = items[current][0]
                 if cur_key in selected_keys:
                     selected_keys.remove(cur_key)
                 else:
                     selected_keys.add(cur_key)
-            elif key == "a":
-                if len(selected_keys) == len(items):
-                    selected_keys.clear()
+            elif key == "a" and items:
+                visible_keys = {k for k, _, _ in items}
+                if visible_keys.issubset(selected_keys):
+                    selected_keys -= visible_keys
                 else:
-                    selected_keys = {k for k, _, _ in items}
+                    selected_keys |= visible_keys
             elif key == "enter":
                 break
             elif key in ("ctrl_c", "ctrl_d", "q", "esc"):
@@ -351,16 +433,19 @@ def multiselect_menu(
                 sys.exit(0)
 
         # Clear interactive frame cleanly and output final choice
-        out.write(f"\033[{rendered_lines}A\r")
-        for _ in range(rendered_lines):
-            out.write("\033[2K\r\n")
-        out.write(f"\033[{rendered_lines}A\r")
-        chosen_labels = [lbl for k, lbl, _ in items if k in selected_keys]
+        if rendered_lines > 0:
+            out.write(f"\033[{rendered_lines}A\r")
+            for _ in range(rendered_lines):
+                out.write("\033[2K\r\n")
+            out.write(f"\033[{rendered_lines}A\r")
+            out.flush()
+
+        chosen_labels = [lbl for k, lbl, _ in all_items if k in selected_keys]
         out.write(
-            f"{st.badge()} {st.dim(title)} {st.bold_green(', '.join(chosen_labels) if chosen_labels else 'none')}\n"
+            f"{st.badge()} {st.dim(title)} {st.bold_green(f'{len(chosen_labels)} item(s) selected')}\n"
         )
         out.flush()
-        return [k for k, _, _ in items if k in selected_keys]
+        return [k for k, _, _ in all_items if k in selected_keys]
     finally:
         out.write("\033[?25h")
         out.flush()

@@ -193,6 +193,7 @@ class UI:
         title: str,
         options: Sequence[Any],
         preselected: Sequence[str] | set[str] | None = None,
+        searchable: bool = True,
     ) -> list[str]:
         return multiselect_menu(
             title=title,
@@ -200,6 +201,7 @@ class UI:
             preselected=preselected,
             styler=self.styler,
             stream=self.stream,
+            searchable=searchable,
         )
 
     # Helpers
