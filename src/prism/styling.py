@@ -7,6 +7,15 @@ import sys
 from typing import TextIO
 
 
+def check_agent_env() -> bool:
+    """Checks environment variables for global Iceberg agent automation mode."""
+    for var in ("ICEBERG_AGENT_MODE", "PRISM_AGENT_MODE", "AGENT_MODE", "LANTERN_AGENT_MODE"):
+        val = os.environ.get(var, "").lower()
+        if val in ("1", "true", "yes", "on"):
+            return True
+    return False
+
+
 def detect_color_support(mode: str = "auto", stream: TextIO | None = None) -> bool:
     """Determines if the output stream supports ANSI color codes."""
     m = mode.lower()
@@ -35,12 +44,15 @@ class Styler:
         badge_color: str = "1;36",
         color_mode: str = "auto",
         stream: TextIO | None = None,
+        agent_mode: bool | None = None,
     ) -> None:
         self.app_name = app_name
         self.icon = icon
         self.badge_color = badge_color
         self._color_mode = color_mode
         self._stream = stream
+        self._agent_mode = check_agent_env() if agent_mode is None else agent_mode
+        self._json_mode = False
 
     @property
     def stream(self) -> TextIO:
@@ -52,8 +64,23 @@ class Styler:
     def set_color_mode(self, mode: str) -> None:
         self._color_mode = mode.lower()
 
+    def set_agent_mode(self, agent: bool = True, json_output: bool = False) -> None:
+        """Sets agent / AI automation mode."""
+        self._agent_mode = agent
+        self._json_mode = json_output
+
+    @property
+    def is_agent(self) -> bool:
+        return self._agent_mode
+
+    @property
+    def is_json(self) -> bool:
+        return self._json_mode
+
     @property
     def use_color(self) -> bool:
+        if self._agent_mode and self._color_mode != "always":
+            return False
         return detect_color_support(self._color_mode, self.stream)
 
     def style(self, text: str, code: str) -> str:
@@ -96,30 +123,65 @@ class Styler:
         return self.style(text, "1;35")
 
     def badge(self) -> str:
+        if self._agent_mode:
+            return f"[{self.app_name}]"
         return self.style(f"{self.icon} [{self.app_name}]", self.badge_color)
 
     def status(self, symbol: str, message: str, code: str = "1") -> str:
+        if self._agent_mode:
+            return f"{self.badge()} {message}"
         return f"{self.badge()} {self.style(f'{symbol} {message}', code)}"
 
     def success(self, msg: str) -> None:
+        if self._json_mode:
+            return
+        if self._agent_mode:
+            print(f"{self.badge()} [ok] {msg}", file=self.stream)
+            return
         print(self.status("✔", msg, "1;32"), file=self.stream)
 
     def info(self, msg: str, symbol: str = "ℹ️") -> None:
+        if self._json_mode:
+            return
+        if self._agent_mode:
+            print(f"{self.badge()} {msg}", file=self.stream)
+            return
         print(self.status(symbol, msg, "1;34"), file=self.stream)
 
     def warn(self, msg: str) -> None:
+        if self._json_mode:
+            return
+        if self._agent_mode:
+            print(f"{self.badge()} [warn] {msg}", file=self.stream)
+            return
         print(self.status("⚠️", msg, "1;33"), file=self.stream)
 
     def error(self, msg: str) -> None:
+        if self._json_mode:
+            return
+        if self._agent_mode:
+            print(f"{self.badge()} [error] {msg}", file=sys.stderr)
+            return
         print(self.status("✘", msg, "1;31"), file=sys.stderr)
 
     def action(self, msg: str, symbol: str = "⚡") -> None:
+        if self._json_mode:
+            return
+        if self._agent_mode:
+            print(f"{self.badge()} {msg}", file=self.stream)
+            return
         print(self.status(symbol, msg, "0;36"), file=self.stream)
 
     def header(self, title: str, width: int = 76) -> None:
+        if self._agent_mode:
+            print(f"\n=== {title} ===", file=self.stream)
+            return
         border = self.blue("=" * width)
         print(f"\n{border}\n {self.bold(title)}\n{border}", file=self.stream)
 
     def subheader(self, title: str, width: int = 76) -> None:
+        if self._agent_mode:
+            print(f"\n--- {title} ---", file=self.stream)
+            return
         rule_part = self.dim("-" * max(0, width - len(title) - 5))
         print(f"\n{self.cyan(f'--- {title}')} {rule_part}", file=self.stream)

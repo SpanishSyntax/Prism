@@ -86,6 +86,13 @@ def select_menu(
     Width & height aware: truncates wide lines and paginates lists to fit any terminal size.
     """
     st = styler or Styler()
+    if st.is_agent:
+        items = normalize_options(options)
+        if not items:
+            return ""
+        idx = max(0, min(default_index, len(items) - 1))
+        return items[idx][0]
+
     out = stream or st.stream
     items = normalize_options(options)
     if not items:
@@ -227,6 +234,9 @@ def multiselect_menu(
     Width & height aware: truncates wide lines and paginates lists to fit any terminal size.
     """
     st = styler or Styler()
+    if st.is_agent:
+        return list(preselected) if preselected else []
+
     out = stream or st.stream
     all_items = normalize_options(options)
     if not all_items:

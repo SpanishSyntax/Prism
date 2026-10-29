@@ -44,6 +44,8 @@ class Spinner:
 
     def start(self) -> None:
         """Starts the spinner thread."""
+        if self.styler.is_agent:
+            return
         if not self._is_tty:
             self.styler.action(self.message, symbol="⏳")
             return
@@ -54,6 +56,13 @@ class Spinner:
 
     def stop(self, final_message: str | None = None, ok: bool = True) -> None:
         """Stops the spinner and restores cursor."""
+        if self.styler.is_agent:
+            if final_message:
+                if ok:
+                    self.styler.success(final_message)
+                else:
+                    self.styler.error(final_message)
+            return
         if not self._is_tty:
             if final_message:
                 if ok:

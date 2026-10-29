@@ -22,6 +22,9 @@ def prompt_input(
     Handles EOFError and KeyboardInterrupt cleanly.
     """
     st = styler or Styler()
+    if st.is_agent:
+        return default
+
     out = stream or st.stream
 
     suffix = f" {st.dim(f'[{default}]')}: " if default else ": "
@@ -60,6 +63,9 @@ def confirm_input(
     Defaults to the given default boolean on empty Enter.
     """
     st = styler or Styler()
+    if st.is_agent:
+        return default
+
     out = stream or st.stream
 
     choices = "Y/n" if default else "y/N"

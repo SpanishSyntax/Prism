@@ -22,6 +22,15 @@ def render_panel(
     out = stream or st.stream
     body_lines = lines.splitlines() if isinstance(lines, str) else list(lines)
 
+    if st.is_agent:
+        title_clean = strip_ansi(title).strip()
+        if title_clean:
+            print(f"=== {title_clean} ===", file=out)
+        for line in body_lines:
+            print(strip_ansi(line), file=out)
+        print(file=out)
+        return
+
     term_cols = get_terminal_columns(fallback=80)
     box_w = min(width, max(36, term_cols - 2))
     inner_w = box_w - 4
@@ -60,6 +69,15 @@ def render_error_panel(
     """Renders an error diagnostic panel with red border to stderr."""
     st = styler or Styler()
     out = stream or sys.stderr
+
+    if st.is_agent:
+        title_clean = strip_ansi(title).strip()
+        print(f"ERROR: {title_clean}", file=out)
+        body_lines = lines.splitlines() if isinstance(lines, str) else list(lines)
+        for line in body_lines:
+            print(strip_ansi(line), file=out)
+        return
+
     styled_title = st.red(f"✘ {title}")
     render_panel(
         title=styled_title,

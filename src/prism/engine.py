@@ -26,6 +26,7 @@ class UI:
         badge_color: str = "1;36",
         stream: TextIO | None = None,
         color_mode: str = "auto",
+        agent_mode: bool | None = None,
     ) -> None:
         self.styler = Styler(
             app_name=app_name,
@@ -33,6 +34,7 @@ class UI:
             badge_color=badge_color,
             color_mode=color_mode,
             stream=stream,
+            agent_mode=agent_mode,
         )
 
     # Stream & Color Configuration
@@ -41,6 +43,17 @@ class UI:
 
     def set_color_mode(self, mode: str) -> None:
         self.styler.set_color_mode(mode)
+
+    def set_agent_mode(self, agent: bool = True, json_output: bool = False) -> None:
+        self.styler.set_agent_mode(agent=agent, json_output=json_output)
+
+    @property
+    def is_agent(self) -> bool:
+        return self.styler.is_agent
+
+    @property
+    def is_json(self) -> bool:
+        return self.styler.is_json
 
     @property
     def use_color(self) -> bool:

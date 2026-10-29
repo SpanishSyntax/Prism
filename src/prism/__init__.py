@@ -2,13 +2,20 @@
 
 from __future__ import annotations
 
-from prism.color import add_color_args, apply_color_args, handle_color_args
+from prism.color import (
+    add_agent_args,
+    add_color_args,
+    apply_agent_args,
+    apply_color_args,
+    handle_agent_args,
+    handle_color_args,
+)
 from prism.engine import UI, ui
 from prism.inputs import confirm_input, prompt_input
 from prism.menus import multiselect_menu, select_menu
 from prism.panels import render_error_panel, render_panel
 from prism.spinner import Spinner, spinner_context
-from prism.styling import Styler, detect_color_support
+from prism.styling import Styler, check_agent_env, detect_color_support
 from prism.terminal import (
     cbreak_mode,
     get_key,
@@ -27,6 +34,10 @@ __all__ = [
     "add_color_args",
     "handle_color_args",
     "apply_color_args",
+    "add_agent_args",
+    "handle_agent_args",
+    "apply_agent_args",
+    "check_agent_env",
     "Styler",
     "Spinner",
     "spinner_context",
