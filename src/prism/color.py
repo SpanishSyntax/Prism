@@ -56,16 +56,21 @@ def handle_color_args(
     """
     Scans raw command-line argv for --color, --no-color, and agent flags before full argument
     parsing. This ensures early logging, banner boxes, and --help output honor user color preferences
-    and agent mode.
-    
+    and agent mode across all UI instances.
+
     Returns the resolved color mode: 'auto', 'always', or 'never'.
     """
-    from prism.engine import ui as default_ui
+    from prism.engine import get_all_ui_instances, ui as default_ui
     from prism.styling import check_agent_env
 
-    target_ui = ui if ui is not None else default_ui
+    target_uis = [ui] if ui is not None else get_all_ui_instances()
+    if not target_uis:
+        target_uis = [default_ui]
+
     args = argv if argv is not None else sys.argv[1:]
     mode = "auto"
+    agent_flag = False
+    json_flag = False
 
     for i, arg in enumerate(args):
         if arg == "--no-color":
@@ -79,14 +84,18 @@ def handle_color_args(
             if val in ("auto", "always", "never"):
                 mode = val
         elif arg in ("--agent", "-A"):
-            target_ui.set_agent_mode(agent=True, json_output=target_ui.is_json)
+            agent_flag = True
         elif arg == "--json":
-            target_ui.set_agent_mode(agent=True, json_output=True)
+            agent_flag = True
+            json_flag = True
 
-    if check_agent_env():
-        target_ui.set_agent_mode(agent=True, json_output=target_ui.is_json)
+    is_agent = agent_flag or json_flag or check_agent_env()
 
-    target_ui.set_color_mode(mode)
+    for target_ui in target_uis:
+        if is_agent:
+            target_ui.set_agent_mode(agent=True, json_output=json_flag)
+        target_ui.set_color_mode(mode)
+
     return mode
 
 
@@ -98,15 +107,19 @@ def apply_color_args(
     Applies parsed arguments (--color and --no-color) to a UI instance.
     Returns the resolved color mode: 'auto', 'always', or 'never'.
     """
-    from prism.engine import ui as default_ui
+    from prism.engine import get_all_ui_instances, ui as default_ui
 
-    target_ui = ui if ui is not None else default_ui
+    target_uis = [ui] if ui is not None else get_all_ui_instances()
+    if not target_uis:
+        target_uis = [default_ui]
+
     if getattr(args, "no_color", False):
         mode = "never"
     else:
         mode = getattr(args, "color", "auto")
 
-    target_ui.set_color_mode(mode)
+    for target_ui in target_uis:
+        target_ui.set_color_mode(mode)
     return mode
 
 
@@ -114,17 +127,24 @@ def add_agent_args(parser: argparse.ArgumentParser) -> None:
     """
     Adds standardized --agent (-A) and --json flags to an ArgumentParser.
     """
-    parser.add_argument(
-        "-A",
-        "--agent",
-        action="store_true",
-        help="Compact agent-friendly output mode (no Unicode boxes, no emojis, no interactive prompts)",
-    )
-    parser.add_argument(
-        "--json",
-        action="store_true",
-        help="Structured JSON output for programmatic tool integration",
-    )
+    try:
+        parser.add_argument(
+            "-A",
+            "--agent",
+            action="store_true",
+            help="Compact agent-friendly output mode (no Unicode boxes, no emojis, no interactive prompts)",
+        )
+    except argparse.ArgumentError:
+        pass
+
+    try:
+        parser.add_argument(
+            "--json",
+            action="store_true",
+            help="Structured JSON output for programmatic tool integration",
+        )
+    except argparse.ArgumentError:
+        pass
 
 
 def handle_agent_args(
@@ -135,10 +155,13 @@ def handle_agent_args(
     Scans raw command-line argv for --agent, -A, --json flags and environment variables.
     Returns (is_agent, is_json).
     """
-    from prism.engine import ui as default_ui
+    from prism.engine import get_all_ui_instances, ui as default_ui
     from prism.styling import check_agent_env
 
-    target_ui = ui if ui is not None else default_ui
+    target_uis = [ui] if ui is not None else get_all_ui_instances()
+    if not target_uis:
+        target_uis = [default_ui]
+
     args = argv if argv is not None else sys.argv[1:]
 
     agent_flag = any(a in ("--agent", "-A") for a in args)
@@ -148,8 +171,9 @@ def handle_agent_args(
     is_agent = agent_flag or json_flag or env_agent
     is_json = json_flag
 
-    if is_agent:
-        target_ui.set_agent_mode(agent=True, json_output=is_json)
+    for target_ui in target_uis:
+        if is_agent:
+            target_ui.set_agent_mode(agent=True, json_output=is_json)
 
     return is_agent, is_json
 
@@ -161,14 +185,18 @@ def apply_agent_args(
     """
     Applies parsed arguments (--agent and --json) to a UI instance.
     """
-    from prism.engine import ui as default_ui
+    from prism.engine import get_all_ui_instances, ui as default_ui
     from prism.styling import check_agent_env
 
-    target_ui = ui if ui is not None else default_ui
+    target_uis = [ui] if ui is not None else get_all_ui_instances()
+    if not target_uis:
+        target_uis = [default_ui]
+
     is_agent = getattr(args, "agent", False) or getattr(args, "json", False) or check_agent_env()
     is_json = getattr(args, "json", False)
 
-    if is_agent:
-        target_ui.set_agent_mode(agent=True, json_output=is_json)
+    for target_ui in target_uis:
+        if is_agent:
+            target_ui.set_agent_mode(agent=True, json_output=is_json)
 
     return is_agent, is_json

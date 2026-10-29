@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+import weakref
 from typing import Any, Iterator, Sequence, TextIO
 
 from prism.inputs import confirm_input, prompt_input
@@ -11,6 +12,21 @@ from prism.panels import render_error_panel, render_panel
 from prism.spinner import Spinner
 from prism.styling import Styler
 from prism.terminal import get_terminal_columns, strip_ansi, visual_len
+
+
+_registered_instances: list[weakref.ref[UI]] = []
+
+
+def get_all_ui_instances() -> list[UI]:
+    """Returns all currently live UI instances."""
+    live = []
+    for ref in list(_registered_instances):
+        inst = ref()
+        if inst is not None:
+            live.append(inst)
+        else:
+            _registered_instances.remove(ref)
+    return live
 
 
 class UI:
@@ -36,6 +52,7 @@ class UI:
             stream=stream,
             agent_mode=agent_mode,
         )
+        _registered_instances.append(weakref.ref(self))
 
     # Stream & Color Configuration
     def set_stream(self, stream: TextIO) -> None:
