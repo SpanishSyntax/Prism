@@ -12,19 +12,41 @@ if TYPE_CHECKING:
 
 def add_color_args(parser: argparse.ArgumentParser) -> None:
     """
-    Adds standardized --color and --no-color flags to an ArgumentParser.
+    Adds standardized --color, --no-color, and agent automation flags to an ArgumentParser.
     """
-    parser.add_argument(
-        "--color",
-        choices=["auto", "always", "never"],
-        default="auto",
-        help="Color output mode: auto, always, never (default: auto)",
-    )
-    parser.add_argument(
-        "--no-color",
-        action="store_true",
-        help="Disable colored output (equivalent to --color never)",
-    )
+    try:
+        parser.add_argument(
+            "--color",
+            choices=["auto", "always", "never"],
+            default="auto",
+            help="Color output mode: auto, always, never (default: auto)",
+        )
+        parser.add_argument(
+            "--no-color",
+            action="store_true",
+            help="Disable colored output (equivalent to --color never)",
+        )
+    except argparse.ArgumentError:
+        pass
+
+    try:
+        parser.add_argument(
+            "-A",
+            "--agent",
+            action="store_true",
+            help="Compact agent-friendly output mode (no Unicode boxes, no emojis, no interactive prompts)",
+        )
+    except argparse.ArgumentError:
+        pass
+
+    try:
+        parser.add_argument(
+            "--json",
+            action="store_true",
+            help="Structured JSON output for programmatic tool integration",
+        )
+    except argparse.ArgumentError:
+        pass
 
 
 def handle_color_args(
@@ -32,12 +54,14 @@ def handle_color_args(
     ui: UI | None = None,
 ) -> str:
     """
-    Scans raw command-line argv for --color and --no-color flags before full argument
-    parsing. This ensures early logging, banner boxes, and --help output honor user color preferences.
+    Scans raw command-line argv for --color, --no-color, and agent flags before full argument
+    parsing. This ensures early logging, banner boxes, and --help output honor user color preferences
+    and agent mode.
     
     Returns the resolved color mode: 'auto', 'always', or 'never'.
     """
     from prism.engine import ui as default_ui
+    from prism.styling import check_agent_env
 
     target_ui = ui if ui is not None else default_ui
     args = argv if argv is not None else sys.argv[1:]
@@ -54,6 +78,13 @@ def handle_color_args(
             val = args[i + 1].lower()
             if val in ("auto", "always", "never"):
                 mode = val
+        elif arg in ("--agent", "-A"):
+            target_ui.set_agent_mode(agent=True, json_output=target_ui.is_json)
+        elif arg == "--json":
+            target_ui.set_agent_mode(agent=True, json_output=True)
+
+    if check_agent_env():
+        target_ui.set_agent_mode(agent=True, json_output=target_ui.is_json)
 
     target_ui.set_color_mode(mode)
     return mode
