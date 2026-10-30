@@ -132,12 +132,10 @@ class Styler:
 
     @property
     def is_interactive(self) -> bool:
-        """True only when stdin and stdout are interactive TTYs and neither agent nor JSON mode is active."""
+        """True only when stdin is an interactive TTY and neither agent nor JSON mode is active."""
         if self._agent_mode or self._json_mode:
             return False
-        stdout_tty = hasattr(self.stream, "isatty") and self.stream.isatty()
-        stdin_tty = hasattr(sys.stdin, "isatty") and sys.stdin.isatty()
-        return bool(stdout_tty and stdin_tty)
+        return bool(hasattr(sys.stdin, "isatty") and sys.stdin.isatty())
 
     @property
     def use_color(self) -> bool:

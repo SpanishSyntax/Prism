@@ -140,8 +140,7 @@ def test_is_interactive_property(monkeypatch):
     assert ui_inst.is_interactive is False
 
     ui_inst.set_agent_mode(agent=False)
-    # Mock TTY for both stdin and stdout
-    monkeypatch.setattr(ui_inst.stream, "isatty", lambda: True, raising=False)
+    # Mock TTY for stdin
     monkeypatch.setattr("sys.stdin.isatty", lambda: True)
     assert ui_inst.is_interactive is True
 
