@@ -48,20 +48,29 @@ def add_color_args(parser: argparse.ArgumentParser) -> None:
     except argparse.ArgumentError:
         pass
 
+    try:
+        parser.add_argument(
+            "--toon",
+            action="store_true",
+            help="Token-Oriented Object Notation (TOON) output for compact token-saving LLM context",
+        )
+    except argparse.ArgumentError:
+        pass
+
 
 def handle_color_args(
     argv: Sequence[str] | None = None,
     ui: UI | None = None,
 ) -> str:
     """
-    Scans raw command-line argv for --color, --no-color, and agent flags before full argument
-    parsing. This ensures early logging, banner boxes, and --help output honor user color preferences
-    and agent mode across all UI instances.
+    Scans raw command-line argv for --color, --no-color, agent, and structured format flags
+    before full argument parsing. This ensures early logging, banner boxes, and --help output honor
+    user color preferences and agent mode across all UI instances.
 
     Returns the resolved color mode: 'auto', 'always', or 'never'.
     """
     from prism.engine import get_all_ui_instances, ui as default_ui
-    from prism.styling import check_agent_env, check_json_env
+    from prism.styling import check_agent_env, check_json_env, check_toon_env
 
     target_uis = [ui] if ui is not None else get_all_ui_instances()
     if not target_uis:
@@ -71,6 +80,7 @@ def handle_color_args(
     mode = "auto"
     agent_flag = False
     json_flag = False
+    toon_flag = False
 
     for i, arg in enumerate(args):
         if arg == "--no-color":
@@ -88,13 +98,17 @@ def handle_color_args(
         elif arg == "--json":
             agent_flag = True
             json_flag = True
+        elif arg == "--toon":
+            agent_flag = True
+            toon_flag = True
 
+    is_toon = toon_flag or check_toon_env()
     is_json = json_flag or check_json_env()
-    is_agent = agent_flag or is_json or check_agent_env()
+    is_agent = agent_flag or is_json or is_toon or check_agent_env()
 
     for target_ui in target_uis:
         if is_agent:
-            target_ui.set_agent_mode(agent=True, json_output=is_json)
+            target_ui.set_agent_mode(agent=True, json_output=is_json, toon_output=is_toon)
         target_ui.set_color_mode(mode)
 
     return mode
@@ -147,17 +161,26 @@ def add_agent_args(parser: argparse.ArgumentParser) -> None:
     except argparse.ArgumentError:
         pass
 
+    try:
+        parser.add_argument(
+            "--toon",
+            action="store_true",
+            help="Token-Oriented Object Notation (TOON) output for compact token-saving LLM context",
+        )
+    except argparse.ArgumentError:
+        pass
+
 
 def handle_agent_args(
     argv: Sequence[str] | None = None,
     ui: UI | None = None,
 ) -> tuple[bool, bool]:
     """
-    Scans raw command-line argv for --agent, -A, --json flags and environment variables.
+    Scans raw command-line argv for --agent, -A, --json, --toon flags and environment variables.
     Returns (is_agent, is_json).
     """
     from prism.engine import get_all_ui_instances, ui as default_ui
-    from prism.styling import check_agent_env, check_json_env
+    from prism.styling import check_agent_env, check_json_env, check_toon_env
 
     target_uis = [ui] if ui is not None else get_all_ui_instances()
     if not target_uis:
@@ -167,15 +190,18 @@ def handle_agent_args(
 
     agent_flag = any(a in ("--agent", "-A") for a in args)
     json_flag = any(a in ("--json",) for a in args)
+    toon_flag = any(a in ("--toon",) for a in args)
     env_agent = check_agent_env()
     env_json = check_json_env()
+    env_toon = check_toon_env()
 
     is_json = json_flag or env_json
-    is_agent = agent_flag or is_json or env_agent
+    is_toon = toon_flag or env_toon
+    is_agent = agent_flag or is_json or is_toon or env_agent
 
     for target_ui in target_uis:
         if is_agent:
-            target_ui.set_agent_mode(agent=True, json_output=is_json)
+            target_ui.set_agent_mode(agent=True, json_output=is_json, toon_output=is_toon)
 
     return is_agent, is_json
 
@@ -185,21 +211,22 @@ def apply_agent_args(
     ui: UI | None = None,
 ) -> tuple[bool, bool]:
     """
-    Applies parsed arguments (--agent and --json) to a UI instance.
+    Applies parsed arguments (--agent, --json, and --toon) to a UI instance.
     """
     from prism.engine import get_all_ui_instances, ui as default_ui
-    from prism.styling import check_agent_env, check_json_env
+    from prism.styling import check_agent_env, check_json_env, check_toon_env
 
     target_uis = [ui] if ui is not None else get_all_ui_instances()
     if not target_uis:
         target_uis = [default_ui]
 
     is_json = getattr(args, "json", False) or check_json_env()
-    is_agent = getattr(args, "agent", False) or is_json or check_agent_env()
+    is_toon = getattr(args, "toon", False) or check_toon_env()
+    is_agent = getattr(args, "agent", False) or is_json or is_toon or check_agent_env()
 
     for target_ui in target_uis:
         if is_agent:
-            target_ui.set_agent_mode(agent=True, json_output=is_json)
+            target_ui.set_agent_mode(agent=True, json_output=is_json, toon_output=is_toon)
 
     return is_agent, is_json
 

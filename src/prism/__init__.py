@@ -21,9 +21,11 @@ from prism.styling import (
     Styler,
     check_agent_env,
     check_json_env,
+    check_toon_env,
     detect_color_support,
     get_agent_env,
     get_json_env,
+    get_toon_env,
 )
 from prism.terminal import (
     cbreak_mode,
@@ -35,6 +37,7 @@ from prism.terminal import (
     strip_emojis,
     visual_len,
 )
+from prism.toon import encode_toon, format_scalar
 
 __version__ = "0.1.0"
 
@@ -49,8 +52,12 @@ __all__ = [
     "apply_agent_args",
     "check_agent_env",
     "check_json_env",
+    "check_toon_env",
     "get_agent_env",
     "get_json_env",
+    "get_toon_env",
+    "encode_toon",
+    "format_scalar",
     "handle_version_arg",
     "HelpBuilder",
     "render_help",

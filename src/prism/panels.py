@@ -22,6 +22,9 @@ def render_panel(
     out = stream or st.stream
     body_lines = lines.splitlines() if isinstance(lines, str) else list(lines)
 
+    if st.is_json or st.is_toon:
+        return
+
     if st.is_agent:
         title_clean = strip_emojis(strip_ansi(title)).strip()
         if title_clean:
@@ -69,6 +72,9 @@ def render_error_panel(
     """Renders an error diagnostic panel with red border to stderr."""
     st = styler or Styler()
     out = stream or sys.stderr
+
+    if st.is_json or st.is_toon:
+        return
 
     if st.is_agent:
         title_clean = strip_emojis(strip_ansi(title)).strip()

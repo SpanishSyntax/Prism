@@ -20,6 +20,9 @@ def check_agent_env() -> bool:
         "ICEBERG_JSON_MODE",
         "PRISM_JSON_MODE",
         "JSON_MODE",
+        "ICEBERG_TOON_MODE",
+        "PRISM_TOON_MODE",
+        "TOON_MODE",
     ):
         val = os.environ.get(var, "").lower()
         if val in ("1", "true", "yes", "on"):
@@ -30,6 +33,15 @@ def check_agent_env() -> bool:
 def check_json_env() -> bool:
     """Checks environment variables for global Iceberg JSON output mode."""
     for var in ("ICEBERG_JSON_MODE", "PRISM_JSON_MODE", "JSON_MODE"):
+        val = os.environ.get(var, "").lower()
+        if val in ("1", "true", "yes", "on"):
+            return True
+    return False
+
+
+def check_toon_env() -> bool:
+    """Checks environment variables for global Iceberg TOON output mode."""
+    for var in ("ICEBERG_TOON_MODE", "PRISM_TOON_MODE", "TOON_MODE"):
         val = os.environ.get(var, "").lower()
         if val in ("1", "true", "yes", "on"):
             return True
@@ -63,6 +75,24 @@ def get_json_env(extra: dict[str, str] | None = None) -> dict[str, str]:
         "ICEBERG_JSON_MODE": "1",
         "PRISM_JSON_MODE": "1",
         "JSON_MODE": "1",
+    }
+    if extra:
+        env.update(extra)
+    return env
+
+
+def get_toon_env(extra: dict[str, str] | None = None) -> dict[str, str]:
+    """Returns environment dictionary enabling TOON output mode across all child processes.
+
+    Sets ICEBERG_TOON_MODE=1, PRISM_TOON_MODE=1, TOON_MODE=1, and ICEBERG_AGENT_MODE=1.
+    """
+    env = {
+        "ICEBERG_AGENT_MODE": "1",
+        "PRISM_AGENT_MODE": "1",
+        "AGENT_MODE": "1",
+        "ICEBERG_TOON_MODE": "1",
+        "PRISM_TOON_MODE": "1",
+        "TOON_MODE": "1",
     }
     if extra:
         env.update(extra)
@@ -106,6 +136,7 @@ class Styler:
         self._stream = stream
         self._agent_mode = check_agent_env() if agent_mode is None else agent_mode
         self._json_mode = False
+        self._toon_mode = False
 
     @property
     def stream(self) -> TextIO:
@@ -117,10 +148,13 @@ class Styler:
     def set_color_mode(self, mode: str) -> None:
         self._color_mode = mode.lower()
 
-    def set_agent_mode(self, agent: bool = True, json_output: bool = False) -> None:
+    def set_agent_mode(
+        self, agent: bool = True, json_output: bool = False, toon_output: bool = False
+    ) -> None:
         """Sets agent / AI automation mode."""
         self._agent_mode = agent
         self._json_mode = json_output
+        self._toon_mode = toon_output
 
     @property
     def is_agent(self) -> bool:
@@ -131,9 +165,13 @@ class Styler:
         return self._json_mode
 
     @property
+    def is_toon(self) -> bool:
+        return self._toon_mode
+
+    @property
     def is_interactive(self) -> bool:
-        """True only when stdin is an interactive TTY and neither agent nor JSON mode is active."""
-        if self._agent_mode or self._json_mode:
+        """True only when stdin is an interactive TTY and neither agent, JSON, nor TOON mode is active."""
+        if self._agent_mode or self._json_mode or self._toon_mode:
             return False
         return bool(hasattr(sys.stdin, "isatty") and sys.stdin.isatty())
 
@@ -193,7 +231,7 @@ class Styler:
         return f"{self.badge()} {self.style(f'{symbol} {message}', code)}"
 
     def success(self, msg: str) -> None:
-        if self._json_mode:
+        if self._json_mode or self._toon_mode:
             return
         if self._agent_mode:
             print(f"{self.badge()} [ok] {msg}", file=self.stream)
@@ -201,7 +239,7 @@ class Styler:
         print(self.status("✔", msg, "1;32"), file=self.stream)
 
     def info(self, msg: str, symbol: str = "ℹ️") -> None:
-        if self._json_mode:
+        if self._json_mode or self._toon_mode:
             return
         if self._agent_mode:
             print(f"{self.badge()} {msg}", file=self.stream)
@@ -209,7 +247,7 @@ class Styler:
         print(self.status(symbol, msg, "1;34"), file=self.stream)
 
     def warn(self, msg: str) -> None:
-        if self._json_mode:
+        if self._json_mode or self._toon_mode:
             return
         if self._agent_mode:
             print(f"{self.badge()} [warn] {msg}", file=self.stream)
@@ -220,13 +258,17 @@ class Styler:
         if self._json_mode:
             print(json.dumps({"status": "error", "error": strip_ansi(msg)}), file=sys.stderr)
             return
+        if self._toon_mode:
+            from prism.toon import encode_toon
+            print(encode_toon({"status": "error", "error": strip_ansi(msg)}), file=sys.stderr)
+            return
         if self._agent_mode:
             print(f"{self.badge()} [error] {msg}", file=sys.stderr)
             return
         print(self.status("✘", msg, "1;31"), file=sys.stderr)
 
     def action(self, msg: str, symbol: str = "⚡") -> None:
-        if self._json_mode:
+        if self._json_mode or self._toon_mode:
             return
         if self._agent_mode:
             print(f"{self.badge()} {msg}", file=self.stream)
@@ -258,12 +300,42 @@ class Styler:
         if exit_code is not None:
             sys.exit(exit_code)
 
+    def toon(
+        self,
+        data: Any,
+        status: str | None = None,
+        delimiter: str = ",",
+        exit_code: int | None = None,
+    ) -> None:
+        """Standardized Token-Oriented Object Notation (TOON) emitter for Iceberg CLI tools."""
+        from prism.toon import encode_toon
+
+        payload: Any
+        if isinstance(data, dict):
+            payload = dict(data)
+            if status is not None and "status" not in payload:
+                payload = {"status": status, **payload}
+        elif isinstance(data, list):
+            if status is not None:
+                payload = {"status": status, "items": data}
+            else:
+                payload = data
+        else:
+            payload = {"status": status or "ok", "value": data} if status is not None else data
+
+        print(encode_toon(payload, delimiter=delimiter), file=self.stream)
+        if exit_code is not None:
+            sys.exit(exit_code)
+
     def version(self, version_str: str, app_name: str | None = None) -> None:
-        """Outputs standardized version string matching agent, JSON, and human expectations."""
+        """Outputs standardized version string matching agent, JSON, TOON, and human expectations."""
         name = app_name or self.app_name
         clean_ver = version_str.lstrip("v")
         if self._json_mode:
             self.json({"status": "ok", "app": name, "version": clean_ver})
+            return
+        if self._toon_mode:
+            self.toon({"status": "ok", "app": name, "version": clean_ver})
             return
         if self._agent_mode:
             print(f"{name} {clean_ver}", file=self.stream)

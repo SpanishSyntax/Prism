@@ -61,8 +61,10 @@ class UI:
     def set_color_mode(self, mode: str) -> None:
         self.styler.set_color_mode(mode)
 
-    def set_agent_mode(self, agent: bool = True, json_output: bool = False) -> None:
-        self.styler.set_agent_mode(agent=agent, json_output=json_output)
+    def set_agent_mode(
+        self, agent: bool = True, json_output: bool = False, toon_output: bool = False
+    ) -> None:
+        self.styler.set_agent_mode(agent=agent, json_output=json_output, toon_output=toon_output)
 
     @property
     def is_agent(self) -> bool:
@@ -71,6 +73,10 @@ class UI:
     @property
     def is_json(self) -> bool:
         return self.styler.is_json
+
+    @property
+    def is_toon(self) -> bool:
+        return self.styler.is_toon
 
     @property
     def is_interactive(self) -> bool:
@@ -154,6 +160,15 @@ class UI:
         exit_code: int | None = None,
     ) -> None:
         self.styler.json(data=data, status=status, indent=indent, exit_code=exit_code)
+
+    def toon(
+        self,
+        data: Any,
+        status: str | None = None,
+        delimiter: str = ",",
+        exit_code: int | None = None,
+    ) -> None:
+        self.styler.toon(data=data, status=status, delimiter=delimiter, exit_code=exit_code)
 
     def version(self, version_str: str, app_name: str | None = None) -> None:
         self.styler.version(version_str=version_str, app_name=app_name)

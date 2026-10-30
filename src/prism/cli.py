@@ -62,6 +62,7 @@ Usage: prism [options]
 Options:
   -A, --agent            Compact machine/agent friendly output mode
   --json                 Structured JSON output mode
+  --toon                 Token-Oriented Object Notation (TOON) output mode
   --demo                 Run interactive UI component demonstration
   --color MODE           Color output mode: auto, always, never
   --no-color             Disable colored output
@@ -134,6 +135,9 @@ def main(argv: list[str] | None = None) -> int:
     if len(raw_args) == 0 and not ui.is_interactive:
         if ui.is_json:
             ui.json({"status": "ok", "app": "prism", "version": __version__})
+            return 0
+        if ui.is_toon:
+            ui.toon({"status": "ok", "app": "prism", "version": __version__})
             return 0
         print_help()
         return 0
