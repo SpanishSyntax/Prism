@@ -214,13 +214,19 @@ def handle_version_arg(
 
     If matched, outputs the standardized version string/JSON via ui.version() and returns True.
     """
-    from prism.engine import ui as default_ui
+    from prism.engine import get_all_ui_instances, ui as default_ui
 
-    target_ui = ui or default_ui
+    if ui is not None:
+        target_ui = ui
+    else:
+        all_uis = get_all_ui_instances()
+        target_ui = all_uis[-1] if all_uis else default_ui
+
+    name = app_name or target_ui.styler.app_name
     is_version = any(a in ("-V", "--version") for a in raw_args) or (
         len(raw_args) == 1 and raw_args[0] in ("-v", "version")
     )
     if is_version:
-        target_ui.version(version_str, app_name=app_name)
+        target_ui.version(version_str, app_name=name)
         return True
     return False
