@@ -6,7 +6,7 @@ import sys
 from typing import Sequence, TextIO
 
 from prism.styling import Styler
-from prism.terminal import get_terminal_columns, strip_ansi, visual_len
+from prism.terminal import get_terminal_columns, strip_ansi, strip_emojis, visual_len
 
 
 def render_panel(
@@ -23,7 +23,7 @@ def render_panel(
     body_lines = lines.splitlines() if isinstance(lines, str) else list(lines)
 
     if st.is_agent:
-        title_clean = strip_ansi(title).strip()
+        title_clean = strip_emojis(strip_ansi(title)).strip()
         if title_clean:
             print(f"=== {title_clean} ===", file=out)
         for line in body_lines:
@@ -71,7 +71,7 @@ def render_error_panel(
     out = stream or sys.stderr
 
     if st.is_agent:
-        title_clean = strip_ansi(title).strip()
+        title_clean = strip_emojis(strip_ansi(title)).strip()
         print(f"ERROR: {title_clean}", file=out)
         body_lines = lines.splitlines() if isinstance(lines, str) else list(lines)
         for line in body_lines:

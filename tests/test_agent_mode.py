@@ -58,6 +58,17 @@ def test_styler_agent_mode_outputs():
     assert "⚡" not in out
 
 
+def test_panel_agent_mode_strips_emojis():
+    stream = io.StringIO()
+    styler = Styler(app_name="basecamp", icon="⛺", stream=stream, agent_mode=True)
+    render_panel("⛺  Basecamp Roles Registry", ["Role: snowpack"], styler=styler, stream=stream)
+
+    out = stream.getvalue()
+    assert "=== Basecamp Roles Registry ===" in out
+    assert "⛺" not in out
+    assert "Role: snowpack" in out
+
+
 def test_panel_agent_mode():
     stream = io.StringIO()
     styler = Styler(app_name="basecamp", icon="⛺", stream=stream, agent_mode=True)

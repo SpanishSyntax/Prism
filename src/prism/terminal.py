@@ -13,11 +13,35 @@ from contextlib import contextmanager
 from typing import Iterator, TextIO
 
 ANSI_REGEX = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
+EMOJI_REGEX = re.compile(
+    r"["
+    r"\U0001F600-\U0001F64F"  # emoticons
+    r"\U0001F300-\U0001F5FF"  # symbols & pictographs
+    r"\U0001F680-\U0001F6FF"  # transport & map symbols
+    r"\U0001F1E0-\U0001F1FF"  # flags
+    r"\U0001F900-\U0001F9FF"  # supplemental symbols and pictographs
+    r"\U0001FA00-\U0001FAFF"  # symbols and pictographs extended-a
+    r"\U0001F700-\U0001F77F"  # alchemical symbols
+    r"\U00002702-\U000027B0"  # dingbats
+    r"\U000024C2-\U0001F251"
+    r"\U00002600-\U000026FF"  # misc symbols
+    r"\U00002300-\U000023FF"  # misc technical
+    r"\U00002B00-\U00002BFF"  # misc symbols and arrows
+    r"\U0000FE00-\U0000FE0F"  # variation selectors
+    r"]+",
+    flags=re.UNICODE,
+)
 
 
 def strip_ansi(text: str) -> str:
     """Strips ANSI escape sequences to compute visual character length."""
     return ANSI_REGEX.sub("", text)
+
+
+def strip_emojis(text: str) -> str:
+    """Strips emojis and decorative pictographs from text for agent mode."""
+    cleaned = EMOJI_REGEX.sub("", text)
+    return re.sub(r" {2,}", " ", cleaned).strip()
 
 
 def visual_len(text: str) -> int:

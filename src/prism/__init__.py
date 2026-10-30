@@ -15,7 +15,7 @@ from prism.inputs import confirm_input, prompt_input
 from prism.menus import multiselect_menu, select_menu
 from prism.panels import render_error_panel, render_panel
 from prism.spinner import Spinner, spinner_context
-from prism.styling import Styler, check_agent_env, detect_color_support
+from prism.styling import Styler, check_agent_env, check_json_env, detect_color_support
 from prism.terminal import (
     cbreak_mode,
     get_key,
@@ -23,6 +23,7 @@ from prism.terminal import (
     get_terminal_size,
     read_key,
     strip_ansi,
+    strip_emojis,
     visual_len,
 )
 
@@ -38,6 +39,7 @@ __all__ = [
     "handle_agent_args",
     "apply_agent_args",
     "check_agent_env",
+    "check_json_env",
     "Styler",
     "Spinner",
     "spinner_context",
@@ -52,6 +54,7 @@ __all__ = [
     "get_key",
     "cbreak_mode",
     "strip_ansi",
+    "strip_emojis",
     "visual_len",
     "get_terminal_columns",
     "get_terminal_size",

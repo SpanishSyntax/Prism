@@ -2,14 +2,34 @@
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 from typing import TextIO
 
+from prism.terminal import strip_ansi, strip_emojis
+
 
 def check_agent_env() -> bool:
     """Checks environment variables for global Iceberg agent automation mode."""
-    for var in ("ICEBERG_AGENT_MODE", "PRISM_AGENT_MODE", "AGENT_MODE", "LANTERN_AGENT_MODE"):
+    for var in (
+        "ICEBERG_AGENT_MODE",
+        "PRISM_AGENT_MODE",
+        "AGENT_MODE",
+        "LANTERN_AGENT_MODE",
+        "ICEBERG_JSON_MODE",
+        "PRISM_JSON_MODE",
+        "JSON_MODE",
+    ):
+        val = os.environ.get(var, "").lower()
+        if val in ("1", "true", "yes", "on"):
+            return True
+    return False
+
+
+def check_json_env() -> bool:
+    """Checks environment variables for global Iceberg JSON output mode."""
+    for var in ("ICEBERG_JSON_MODE", "PRISM_JSON_MODE", "JSON_MODE"):
         val = os.environ.get(var, "").lower()
         if val in ("1", "true", "yes", "on"):
             return True
@@ -158,6 +178,7 @@ class Styler:
 
     def error(self, msg: str) -> None:
         if self._json_mode:
+            print(json.dumps({"status": "error", "error": strip_ansi(msg)}), file=sys.stderr)
             return
         if self._agent_mode:
             print(f"{self.badge()} [error] {msg}", file=sys.stderr)
@@ -174,14 +195,16 @@ class Styler:
 
     def header(self, title: str, width: int = 76) -> None:
         if self._agent_mode:
-            print(f"\n=== {title} ===", file=self.stream)
+            clean_title = strip_emojis(strip_ansi(title)).strip()
+            print(f"\n=== {clean_title} ===", file=self.stream)
             return
         border = self.blue("=" * width)
         print(f"\n{border}\n {self.bold(title)}\n{border}", file=self.stream)
 
     def subheader(self, title: str, width: int = 76) -> None:
         if self._agent_mode:
-            print(f"\n--- {title} ---", file=self.stream)
+            clean_title = strip_emojis(strip_ansi(title)).strip()
+            print(f"\n--- {clean_title} ---", file=self.stream)
             return
         rule_part = self.dim("-" * max(0, width - len(title) - 5))
         print(f"\n{self.cyan(f'--- {title}')} {rule_part}", file=self.stream)

@@ -61,7 +61,7 @@ def handle_color_args(
     Returns the resolved color mode: 'auto', 'always', or 'never'.
     """
     from prism.engine import get_all_ui_instances, ui as default_ui
-    from prism.styling import check_agent_env
+    from prism.styling import check_agent_env, check_json_env
 
     target_uis = [ui] if ui is not None else get_all_ui_instances()
     if not target_uis:
@@ -89,11 +89,12 @@ def handle_color_args(
             agent_flag = True
             json_flag = True
 
-    is_agent = agent_flag or json_flag or check_agent_env()
+    is_json = json_flag or check_json_env()
+    is_agent = agent_flag or is_json or check_agent_env()
 
     for target_ui in target_uis:
         if is_agent:
-            target_ui.set_agent_mode(agent=True, json_output=json_flag)
+            target_ui.set_agent_mode(agent=True, json_output=is_json)
         target_ui.set_color_mode(mode)
 
     return mode
@@ -156,7 +157,7 @@ def handle_agent_args(
     Returns (is_agent, is_json).
     """
     from prism.engine import get_all_ui_instances, ui as default_ui
-    from prism.styling import check_agent_env
+    from prism.styling import check_agent_env, check_json_env
 
     target_uis = [ui] if ui is not None else get_all_ui_instances()
     if not target_uis:
@@ -167,9 +168,10 @@ def handle_agent_args(
     agent_flag = any(a in ("--agent", "-A") for a in args)
     json_flag = any(a in ("--json",) for a in args)
     env_agent = check_agent_env()
+    env_json = check_json_env()
 
-    is_agent = agent_flag or json_flag or env_agent
-    is_json = json_flag
+    is_json = json_flag or env_json
+    is_agent = agent_flag or is_json or env_agent
 
     for target_ui in target_uis:
         if is_agent:
@@ -186,14 +188,14 @@ def apply_agent_args(
     Applies parsed arguments (--agent and --json) to a UI instance.
     """
     from prism.engine import get_all_ui_instances, ui as default_ui
-    from prism.styling import check_agent_env
+    from prism.styling import check_agent_env, check_json_env
 
     target_uis = [ui] if ui is not None else get_all_ui_instances()
     if not target_uis:
         target_uis = [default_ui]
 
-    is_agent = getattr(args, "agent", False) or getattr(args, "json", False) or check_agent_env()
-    is_json = getattr(args, "json", False)
+    is_json = getattr(args, "json", False) or check_json_env()
+    is_agent = getattr(args, "agent", False) or is_json or check_agent_env()
 
     for target_ui in target_uis:
         if is_agent:
