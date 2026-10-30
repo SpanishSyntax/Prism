@@ -9,13 +9,22 @@ from prism.color import (
     apply_color_args,
     handle_agent_args,
     handle_color_args,
+    handle_version_arg,
 )
 from prism.engine import UI, ui
+from prism.help import HelpBuilder, render_help
 from prism.inputs import confirm_input, prompt_input
 from prism.menus import multiselect_menu, select_menu
 from prism.panels import render_error_panel, render_panel
 from prism.spinner import Spinner, spinner_context
-from prism.styling import Styler, check_agent_env, check_json_env, detect_color_support
+from prism.styling import (
+    Styler,
+    check_agent_env,
+    check_json_env,
+    detect_color_support,
+    get_agent_env,
+    get_json_env,
+)
 from prism.terminal import (
     cbreak_mode,
     get_key,
@@ -40,6 +49,11 @@ __all__ = [
     "apply_agent_args",
     "check_agent_env",
     "check_json_env",
+    "get_agent_env",
+    "get_json_env",
+    "handle_version_arg",
+    "HelpBuilder",
+    "render_help",
     "Styler",
     "Spinner",
     "spinner_context",

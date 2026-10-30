@@ -202,3 +202,25 @@ def apply_agent_args(
             target_ui.set_agent_mode(agent=True, json_output=is_json)
 
     return is_agent, is_json
+
+
+def handle_version_arg(
+    raw_args: Sequence[str],
+    version_str: str,
+    app_name: str | None = None,
+    ui: UI | None = None,
+) -> bool:
+    """Checks if a version flag (-V, -v, --version, version) was passed in raw_args.
+
+    If matched, outputs the standardized version string/JSON via ui.version() and returns True.
+    """
+    from prism.engine import ui as default_ui
+
+    target_ui = ui or default_ui
+    is_version = any(a in ("-V", "--version") for a in raw_args) or (
+        len(raw_args) == 1 and raw_args[0] in ("-v", "version")
+    )
+    if is_version:
+        target_ui.version(version_str, app_name=app_name)
+        return True
+    return False

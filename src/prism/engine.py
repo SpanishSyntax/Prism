@@ -73,6 +73,10 @@ class UI:
         return self.styler.is_json
 
     @property
+    def is_interactive(self) -> bool:
+        return self.styler.is_interactive
+
+    @property
     def use_color(self) -> bool:
         return self.styler.use_color
 
@@ -141,6 +145,85 @@ class UI:
 
     def action(self, msg: str, symbol: str = "⚡") -> None:
         self.styler.action(msg, symbol=symbol)
+
+    def json(
+        self,
+        data: Any,
+        status: str | None = None,
+        indent: int = 2,
+        exit_code: int | None = None,
+    ) -> None:
+        self.styler.json(data=data, status=status, indent=indent, exit_code=exit_code)
+
+    def version(self, version_str: str, app_name: str | None = None) -> None:
+        self.styler.version(version_str=version_str, app_name=app_name)
+
+    def handle_version_arg(
+        self,
+        raw_args: Sequence[str],
+        version_str: str,
+        app_name: str | None = None,
+    ) -> bool:
+        from prism.color import handle_version_arg
+
+        return handle_version_arg(
+            raw_args=raw_args,
+            version_str=version_str,
+            app_name=app_name,
+            ui=self,
+        )
+
+    def render_help(
+        self,
+        tagline: str,
+        usage: Sequence[str] | str,
+        commands: Sequence[tuple[str, str]] | dict[str, str] | None = None,
+        options: Sequence[tuple[str, str]] | dict[str, str] | None = None,
+        sections: Sequence[tuple[str, Sequence[tuple[str, str]] | str]] | None = None,
+        examples: Sequence[tuple[str, str]] | Sequence[str] | None = None,
+        version: str | None = None,
+        app_name: str | None = None,
+        is_agent: bool | None = None,
+    ) -> str:
+        from prism.help import render_help
+
+        return render_help(
+            app_name=app_name or self.styler.app_name,
+            tagline=tagline,
+            usage=usage,
+            commands=commands,
+            options=options,
+            sections=sections,
+            examples=examples,
+            version=version,
+            styler=self.styler,
+            is_agent=is_agent,
+        )
+
+    def print_help(
+        self,
+        tagline: str,
+        usage: Sequence[str] | str,
+        commands: Sequence[tuple[str, str]] | dict[str, str] | None = None,
+        options: Sequence[tuple[str, str]] | dict[str, str] | None = None,
+        sections: Sequence[tuple[str, Sequence[tuple[str, str]] | str]] | None = None,
+        examples: Sequence[tuple[str, str]] | Sequence[str] | None = None,
+        version: str | None = None,
+        app_name: str | None = None,
+        is_agent: bool | None = None,
+    ) -> None:
+        doc = self.render_help(
+            tagline=tagline,
+            usage=usage,
+            commands=commands,
+            options=options,
+            sections=sections,
+            examples=examples,
+            version=version,
+            app_name=app_name,
+            is_agent=is_agent,
+        )
+        print(doc, end="", file=self.stream)
 
     def header(self, title: str, width: int = 76) -> None:
         self.styler.header(title, width=width)

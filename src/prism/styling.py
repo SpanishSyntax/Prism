@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import os
 import sys
-from typing import TextIO
+from typing import Any, TextIO
 
 from prism.terminal import strip_ansi, strip_emojis
 
@@ -34,6 +34,39 @@ def check_json_env() -> bool:
         if val in ("1", "true", "yes", "on"):
             return True
     return False
+
+
+def get_agent_env(extra: dict[str, str] | None = None) -> dict[str, str]:
+    """Returns environment dictionary enabling agent automation mode across all child processes.
+
+    Sets ICEBERG_AGENT_MODE=1, PRISM_AGENT_MODE=1, and AGENT_MODE=1.
+    """
+    env = {
+        "ICEBERG_AGENT_MODE": "1",
+        "PRISM_AGENT_MODE": "1",
+        "AGENT_MODE": "1",
+    }
+    if extra:
+        env.update(extra)
+    return env
+
+
+def get_json_env(extra: dict[str, str] | None = None) -> dict[str, str]:
+    """Returns environment dictionary enabling JSON output mode across all child processes.
+
+    Sets ICEBERG_JSON_MODE=1, PRISM_JSON_MODE=1, JSON_MODE=1, and ICEBERG_AGENT_MODE=1.
+    """
+    env = {
+        "ICEBERG_AGENT_MODE": "1",
+        "PRISM_AGENT_MODE": "1",
+        "AGENT_MODE": "1",
+        "ICEBERG_JSON_MODE": "1",
+        "PRISM_JSON_MODE": "1",
+        "JSON_MODE": "1",
+    }
+    if extra:
+        env.update(extra)
+    return env
 
 
 def detect_color_support(mode: str = "auto", stream: TextIO | None = None) -> bool:
@@ -96,6 +129,15 @@ class Styler:
     @property
     def is_json(self) -> bool:
         return self._json_mode
+
+    @property
+    def is_interactive(self) -> bool:
+        """True only when stdin and stdout are interactive TTYs and neither agent nor JSON mode is active."""
+        if self._agent_mode or self._json_mode:
+            return False
+        stdout_tty = hasattr(self.stream, "isatty") and self.stream.isatty()
+        stdin_tty = hasattr(sys.stdin, "isatty") and sys.stdin.isatty()
+        return bool(stdout_tty and stdin_tty)
 
     @property
     def use_color(self) -> bool:
@@ -192,6 +234,43 @@ class Styler:
             print(f"{self.badge()} {msg}", file=self.stream)
             return
         print(self.status(symbol, msg, "0;36"), file=self.stream)
+
+    def json(
+        self,
+        data: Any,
+        status: str | None = None,
+        indent: int = 2,
+        exit_code: int | None = None,
+    ) -> None:
+        """Standardized JSON emitter for Iceberg CLI tools and automation pipelines."""
+        payload: Any
+        if isinstance(data, dict):
+            payload = dict(data)
+            if status is not None and "status" not in payload:
+                payload = {"status": status, **payload}
+        elif isinstance(data, list):
+            if status is not None:
+                payload = {"status": status, "items": data}
+            else:
+                payload = data
+        else:
+            payload = {"status": status or "ok", "value": data} if status is not None else data
+
+        print(json.dumps(payload, indent=indent, default=str), file=self.stream)
+        if exit_code is not None:
+            sys.exit(exit_code)
+
+    def version(self, version_str: str, app_name: str | None = None) -> None:
+        """Outputs standardized version string matching agent, JSON, and human expectations."""
+        name = app_name or self.app_name
+        clean_ver = version_str.lstrip("v")
+        if self._json_mode:
+            self.json({"status": "ok", "app": name, "version": clean_ver})
+            return
+        if self._agent_mode:
+            print(f"{name} {clean_ver}", file=self.stream)
+            return
+        print(f"{self.badge()} {name} {clean_ver} (v{clean_ver})", file=self.stream)
 
     def header(self, title: str, width: int = 76) -> None:
         if self._agent_mode:

@@ -131,3 +131,110 @@ def test_cli_agent_args_handling():
     assert is_json is True
     assert ui_inst.is_agent is True
     assert ui_inst.is_json is True
+
+
+def test_is_interactive_property(monkeypatch):
+    ui_inst = UI(app_name="test")
+    # In agent mode, is_interactive is always False
+    ui_inst.set_agent_mode(agent=True)
+    assert ui_inst.is_interactive is False
+
+    ui_inst.set_agent_mode(agent=False)
+    # Mock TTY for both stdin and stdout
+    monkeypatch.setattr(ui_inst.stream, "isatty", lambda: True, raising=False)
+    monkeypatch.setattr("sys.stdin.isatty", lambda: True)
+    assert ui_inst.is_interactive is True
+
+    # When JSON mode active, not interactive
+    ui_inst.set_agent_mode(agent=True, json_output=True)
+    assert ui_inst.is_interactive is False
+
+
+def test_ui_json_emitter():
+    stream = io.StringIO()
+    ui_inst = UI(app_name="test", stream=stream)
+    ui_inst.json({"key": "value"}, status="ok")
+    out = stream.getvalue()
+    assert '"status": "ok"' in out
+    assert '"key": "value"' in out
+
+    # List payload with status wrapping
+    stream = io.StringIO()
+    ui_inst.set_stream(stream)
+    ui_inst.json(["item1", "item2"], status="ok")
+    out = stream.getvalue()
+    assert '"status": "ok"' in out
+    assert '"items": [' in out
+
+
+def test_ui_version_and_handle_version_arg():
+    from prism import handle_version_arg
+
+    # Human mode
+    stream = io.StringIO()
+    ui_inst = UI(app_name="demo", stream=stream)
+    assert handle_version_arg(["--version"], "1.2.3", ui=ui_inst) is True
+    out = stream.getvalue()
+    assert "demo 1.2.3" in out
+    assert "v1.2.3" in out
+
+    # Agent mode
+    stream = io.StringIO()
+    ui_inst = UI(app_name="demo", stream=stream, agent_mode=True)
+    assert handle_version_arg(["-V"], "v1.2.3", ui=ui_inst) is True
+    assert stream.getvalue().strip() == "demo 1.2.3"
+
+    # JSON mode
+    stream = io.StringIO()
+    ui_inst = UI(app_name="demo", stream=stream)
+    ui_inst.set_agent_mode(agent=True, json_output=True)
+    assert handle_version_arg(["version"], "1.2.3", ui=ui_inst) is True
+    assert '"version": "1.2.3"' in stream.getvalue()
+    assert '"app": "demo"' in stream.getvalue()
+
+    # Non-version argument returns False
+    assert handle_version_arg(["build", "file.md"], "1.2.3", ui=ui_inst) is False
+
+
+def test_get_agent_and_json_env():
+    from prism import get_agent_env, get_json_env
+
+    a_env = get_agent_env({"CUSTOM": "val"})
+    assert a_env["ICEBERG_AGENT_MODE"] == "1"
+    assert a_env["PRISM_AGENT_MODE"] == "1"
+    assert a_env["CUSTOM"] == "val"
+    assert "ICEBERG_JSON_MODE" not in a_env
+
+    j_env = get_json_env()
+    assert j_env["ICEBERG_AGENT_MODE"] == "1"
+    assert j_env["ICEBERG_JSON_MODE"] == "1"
+    assert j_env["PRISM_JSON_MODE"] == "1"
+
+
+def test_help_builder_human_and_agent():
+    from prism import HelpBuilder
+
+    hb = (
+        HelpBuilder(app_name="snowpack", tagline="Document Compiler", version="0.1.0")
+        .set_usage(["snowpack [file]", "snowpack build [file]"])
+        .add_command("build", "Compile document")
+        .add_option("-o, --output PATH", "Output filename")
+        .add_example("snowpack report.md", "Compile report")
+    )
+
+    human = hb.render(is_agent=False)
+    assert "Usage:" in human
+    assert "snowpack [file]" in human
+    assert "Commands:" in human
+    assert "build" in human
+    assert "Compile document" in human
+    assert "Options:" in human
+    assert "Examples:" in human
+
+    agent = hb.render(is_agent=True)
+    assert "snowpack v0.1.0 - Document Compiler" in agent
+    assert "Usage: snowpack [file]" in agent
+    assert "       snowpack build [file]" in agent
+    assert "Commands:" in agent
+    assert "Options:" in agent
+    assert "\033[" not in agent
