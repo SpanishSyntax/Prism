@@ -39,9 +39,50 @@ def render_status_card(
     st = styler or default_ui.styler
     out = stream or st.stream
 
+    from prism.terminal import strip_ansi, strip_emojis
+
+    # Structured JSON Mode
+    if st.is_json:
+        import json
+
+        payload: dict[str, Any] = {
+            "status": "active",
+            "title": strip_emojis(strip_ansi(title)),
+        }
+        if url:
+            payload["url"] = url
+        if target:
+            payload["target"] = target
+        if details:
+            items = details.items() if isinstance(details, dict) else details
+            for k, v in items:
+                payload[k.lower().replace(" ", "_")] = v
+        out.write(json.dumps(payload, indent=2) + "\n")
+        return
+
+    # Structured TOON Mode
+    if st.is_toon:
+        from prism.toon import encode_toon
+
+        payload = {
+            "status": "active",
+            "title": strip_emojis(strip_ansi(title)),
+        }
+        if url:
+            payload["url"] = url
+        if target:
+            payload["target"] = target
+        if details:
+            items = details.items() if isinstance(details, dict) else details
+            for k, v in items:
+                payload[k.lower().replace(" ", "_")] = v
+        out.write(encode_toon(payload) + "\n")
+        return
+
     # AI / Agent Mode: Token-efficient, single-line machine output
     if st.is_agent:
-        parts = [f'STATUS_ACTIVE: title="{title}"']
+        clean_title = strip_emojis(strip_ansi(title))
+        parts = [f'STATUS_ACTIVE: title="{clean_title}"']
         if url:
             parts.append(f'url="{url}"')
         if target:

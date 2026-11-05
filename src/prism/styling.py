@@ -134,9 +134,14 @@ class Styler:
         self.badge_color = badge_color
         self._color_mode = color_mode
         self._stream = stream
-        self._agent_mode = check_agent_env() if agent_mode is None else agent_mode
-        self._json_mode = False
-        self._toon_mode = False
+        self._json_mode = check_json_env()
+        self._toon_mode = check_toon_env()
+        if agent_mode is not None:
+            self._agent_mode = agent_mode
+        else:
+            self._agent_mode = (
+                check_agent_env() or self._json_mode or self._toon_mode
+            )
 
     @property
     def stream(self) -> TextIO:
@@ -234,7 +239,8 @@ class Styler:
         if self._json_mode or self._toon_mode:
             return
         if self._agent_mode:
-            print(f"{self.badge()} [ok] {msg}", file=self.stream)
+            clean_msg = strip_emojis(strip_ansi(msg))
+            print(f"{self.badge()} [ok] {clean_msg}", file=self.stream)
             return
         print(self.status("✔", msg, "1;32"), file=self.stream)
 
@@ -242,7 +248,8 @@ class Styler:
         if self._json_mode or self._toon_mode:
             return
         if self._agent_mode:
-            print(f"{self.badge()} {msg}", file=self.stream)
+            clean_msg = strip_emojis(strip_ansi(msg))
+            print(f"{self.badge()} {clean_msg}", file=self.stream)
             return
         print(self.status(symbol, msg, "1;34"), file=self.stream)
 
@@ -250,14 +257,17 @@ class Styler:
         if self._json_mode or self._toon_mode:
             return
         if self._agent_mode:
-            print(f"{self.badge()} [warn] {msg}", file=self.stream)
+            clean_msg = strip_emojis(strip_ansi(msg))
+            print(f"{self.badge()} [warn] {clean_msg}", file=self.stream)
             return
         print(self.status("⚠️", msg, "1;33"), file=self.stream)
 
     def error(self, msg: str) -> None:
         if self._json_mode:
             print(
-                json.dumps({"status": "error", "error": strip_ansi(msg)}),
+                json.dumps(
+                    {"status": "error", "error": strip_emojis(strip_ansi(msg))}
+                ),
                 file=sys.stderr,
             )
             return
@@ -265,12 +275,15 @@ class Styler:
             from prism.toon import encode_toon
 
             print(
-                encode_toon({"status": "error", "error": strip_ansi(msg)}),
+                encode_toon(
+                    {"status": "error", "error": strip_emojis(strip_ansi(msg))}
+                ),
                 file=sys.stderr,
             )
             return
         if self._agent_mode:
-            print(f"{self.badge()} [error] {msg}", file=sys.stderr)
+            clean_msg = strip_emojis(strip_ansi(msg))
+            print(f"{self.badge()} [error] {clean_msg}", file=sys.stderr)
             return
         print(self.status("✘", msg, "1;31"), file=sys.stderr)
 
@@ -278,7 +291,8 @@ class Styler:
         if self._json_mode or self._toon_mode:
             return
         if self._agent_mode:
-            print(f"{self.badge()} {msg}", file=self.stream)
+            clean_msg = strip_emojis(strip_ansi(msg))
+            print(f"{self.badge()} {clean_msg}", file=self.stream)
             return
         print(self.status(symbol, msg, "0;36"), file=self.stream)
 
@@ -360,7 +374,7 @@ class Styler:
     def header(self, title: str, width: int = 76) -> None:
         if self._agent_mode:
             clean_title = strip_emojis(strip_ansi(title)).strip()
-            print(f"\n=== {clean_title} ===", file=self.stream)
+            print(f"[{clean_title}]", file=self.stream)
             return
         border = self.blue("=" * width)
         print(f"\n{border}\n {self.bold(title)}\n{border}", file=self.stream)
@@ -368,7 +382,7 @@ class Styler:
     def subheader(self, title: str, width: int = 76) -> None:
         if self._agent_mode:
             clean_title = strip_emojis(strip_ansi(title)).strip()
-            print(f"\n--- {clean_title} ---", file=self.stream)
+            print(f"{clean_title}:", file=self.stream)
             return
         rule_part = self.dim("-" * max(0, width - len(title) - 5))
         print(f"\n{self.cyan(f'--- {title}')} {rule_part}", file=self.stream)

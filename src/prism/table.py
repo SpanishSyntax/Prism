@@ -61,39 +61,57 @@ def render_table(
     # Clean headers
     clean_headers = [str(h) for h in headers]
 
-    # AI / Agent Mode: Token-efficient, borderless layout
+    # Structured JSON Mode
+    if st.is_json:
+        import json
+
+        items = []
+        for row in string_rows:
+            item = {}
+            for col_idx in range(num_cols):
+                val = row[col_idx] if col_idx < len(row) else ""
+                item[clean_headers[col_idx]] = val
+            items.append(item)
+        payload: Any = {"title": title, "items": items} if title else items
+        res = json.dumps(payload, indent=2) + "\n"
+        if stream:
+            out_stream.write(res)
+        return res
+
+    # Structured TOON Mode
+    if st.is_toon:
+        from prism.toon import encode_toon
+
+        items = []
+        for row in string_rows:
+            item = {}
+            for col_idx in range(num_cols):
+                val = row[col_idx] if col_idx < len(row) else ""
+                item[clean_headers[col_idx]] = val
+            items.append(item)
+        res = f"[{title.strip()}]\n" if title else ""
+        res += encode_toon(items) + "\n"
+        if stream:
+            out_stream.write(res)
+        return res
+
+    # AI / Agent Mode: Token-efficient, borderless layout (no dividers, no padded spaces, no emojis)
     if agent_mode:
+        from prism.terminal import strip_emojis
+
         lines: list[str] = []
         if title:
             lines.append(f"[{title.strip()}]")
 
-        # In Agent mode, compute minimal column widths without decorative padding
-        col_widths: list[int] = []
-        for col_idx in range(num_cols):
-            h_len = visual_len(clean_headers[col_idx])
-            r_lens = [
-                visual_len(row[col_idx])
-                for row in string_rows
-                if col_idx < len(row)
-            ]
-            col_widths.append(max([h_len] + r_lens, default=1))
+        clean_h = [strip_emojis(strip_ansi(h)) for h in clean_headers]
+        lines.append("  ".join(clean_h).rstrip())
 
-        # Header line
-        header_cells = [
-            f"{clean_headers[i]:<{col_widths[i]}}" for i in range(num_cols)
-        ]
-        lines.append("  ".join(header_cells).rstrip())
-
-        # Simple separator line
-        lines.append("  ".join(["-" * w for w in col_widths]))
-
-        # Data rows
         for row in string_rows:
-            row_cells = []
-            for col_idx in range(num_cols):
-                val = row[col_idx] if col_idx < len(row) else ""
-                row_cells.append(f"{val:<{col_widths[col_idx]}}")
-            lines.append("  ".join(row_cells).rstrip())
+            clean_cells = [
+                strip_emojis(strip_ansi(row[c])) if c < len(row) else ""
+                for c in range(num_cols)
+            ]
+            lines.append("  ".join(clean_cells).rstrip())
 
         result = "\n".join(lines) + "\n"
         if stream:

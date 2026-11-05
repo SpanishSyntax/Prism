@@ -28,10 +28,9 @@ def render_panel(
     if st.is_agent:
         title_clean = strip_emojis(strip_ansi(title)).strip()
         if title_clean:
-            print(f"=== {title_clean} ===", file=out)
+            print(f"[{title_clean}]", file=out)
         for line in body_lines:
-            print(strip_ansi(line), file=out)
-        print(file=out)
+            print(strip_emojis(strip_ansi(line)), file=out)
         return
 
     term_cols = get_terminal_columns(fallback=80)
@@ -81,7 +80,7 @@ def render_error_panel(
         print(f"ERROR: {title_clean}", file=out)
         body_lines = lines.splitlines() if isinstance(lines, str) else list(lines)
         for line in body_lines:
-            print(strip_ansi(line), file=out)
+            print(strip_emojis(strip_ansi(line)), file=out)
         return
 
     styled_title = st.red(f"✘ {title}")

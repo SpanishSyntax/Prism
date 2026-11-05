@@ -410,6 +410,65 @@ class UI:
             stream=self.stream,
         )
 
+    def data(
+        self,
+        data: Any = None,
+        title: str | None = None,
+        headers: Sequence[str] | None = None,
+        rows: Sequence[Sequence[Any]] | None = None,
+        exit_code: int | None = None,
+    ) -> None:
+        """Unified polymorphic data emitter for Iceberg applications.
+
+        Automatically outputs:
+        - In JSON Mode (--json): RFC-8259 structured JSON.
+        - In TOON Mode (--toon): Token-Oriented Object Notation.
+        - In Agent Mode (-A / --agent): Token-dense TOON (if structured) or compact table.
+        - In Human Mode (interactive TTY): Styled Unicode rounded table.
+        """
+        if self.is_json:
+            payload = data
+            if payload is None and headers and rows:
+                payload = [
+                    {
+                        str(headers[i]): row[i] if i < len(row) else None
+                        for i in range(len(headers))
+                    }
+                    for row in rows
+                ]
+            if title and isinstance(payload, list):
+                self.json({"title": title, "items": payload}, exit_code=exit_code)
+            else:
+                self.json(payload if payload is not None else {}, exit_code=exit_code)
+            return
+
+        if self.is_toon or self.is_agent:
+            payload = data
+            if payload is None and headers and rows:
+                payload = [
+                    {
+                        str(headers[i]): row[i] if i < len(row) else None
+                        for i in range(len(headers))
+                    }
+                    for row in rows
+                ]
+            if payload is not None:
+                if title:
+                    print(f"[{title}]", file=self.stream)
+                self.toon(payload, exit_code=exit_code)
+                return
+
+        # Human TTY or fallback table
+        if headers and rows:
+            self.table(headers=headers, rows=rows, title=title)
+        elif data is not None:
+            if isinstance(data, list) and data and isinstance(data[0], dict):
+                h = list(data[0].keys())
+                r = [[d.get(k, "") for k in h] for d in data]
+                self.table(headers=h, rows=r, title=title)
+            else:
+                self.json(data)
+
     # Helpers
     @staticmethod
     def strip_ansi(text: str) -> str:

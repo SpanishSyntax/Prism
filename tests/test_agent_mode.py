@@ -62,7 +62,8 @@ def test_panel_agent_mode_strips_emojis():
     )
 
     out = stream.getvalue()
-    assert "=== Basecamp Roles Registry ===" in out
+    assert "[Basecamp Roles Registry]" in out
+    assert "===" not in out
     assert "⛺" not in out
     assert "Role: snowpack" in out
 
@@ -78,10 +79,11 @@ def test_panel_agent_mode():
     )
 
     out = stream.getvalue()
-    assert "=== SYSTEM STATUS ===" in out
+    assert "[SYSTEM STATUS]" in out
+    assert "===" not in out
     assert "Service: Nominal" in out
     assert "Version: 1.0.0" in out
-    # Ensure Unicode box borders are completely omitted
+    # Ensure Unicode box borders and decorative margin lines are completely omitted
     assert "╭" not in out
     assert "╰" not in out
     assert "│" not in out
@@ -252,3 +254,67 @@ def test_help_builder_human_and_agent():
     assert "Commands:" in agent
     assert "Options:" in agent
     assert "\033[" not in agent
+
+
+def test_agent_mode_strips_caller_emojis_and_margins():
+    stream = io.StringIO()
+    ui_inst = UI(app_name="prism", stream=stream, agent_mode=True)
+    ui_inst.info("🚀 Launching rocket to Mars 🌌")
+    ui_inst.success("✨ All systems nominal ✔")
+    ui_inst.warn("⚠️ High solar radiation ⚡")
+    ui_inst.action("📡 Calibrating telemetry 🛰️")
+
+    out = stream.getvalue()
+    assert "[prism] Launching rocket to Mars" in out
+    assert "[prism] [ok] All systems nominal" in out
+    assert "[prism] [warn] High solar radiation" in out
+    assert "[prism] Calibrating telemetry" in out
+    # Verify no emojis leak through
+    for emoji in ("🚀", "🌌", "✨", "✔", "⚠️", "⚡", "📡", "🛰️"):
+        assert emoji not in out
+
+    # Test header and subheader: no margin lines (no === or ---)
+    stream_hdr = io.StringIO()
+    ui_inst.set_stream(stream_hdr)
+    ui_inst.header("Fleet Status 🚢")
+    ui_inst.subheader("Telemetry Units 🌡️")
+    hdr_out = stream_hdr.getvalue()
+    assert "[Fleet Status]" in hdr_out
+    assert "Telemetry Units:" in hdr_out
+    assert "===" not in hdr_out
+    assert "---" not in hdr_out
+    assert "🚢" not in hdr_out
+    assert "🌡️" not in hdr_out
+
+
+def test_ui_data_polymorphic():
+    headers = ["Name", "Role", "Ready"]
+    rows = [["Prism", "UI", True], ["Sled", "MCP", True]]
+
+    # 1. JSON mode
+    stream_json = io.StringIO()
+    ui_json = UI(app_name="test", stream=stream_json)
+    ui_json.set_agent_mode(agent=True, json_output=True)
+    ui_json.data(headers=headers, rows=rows, title="Fleet")
+    out_j = stream_json.getvalue()
+    assert '"title": "Fleet"' in out_j
+    assert '"Name": "Prism"' in out_j
+
+    # 2. TOON mode
+    stream_toon = io.StringIO()
+    ui_toon = UI(app_name="test", stream=stream_toon)
+    ui_toon.set_agent_mode(agent=True, toon_output=True)
+    ui_toon.data(headers=headers, rows=rows, title="Fleet")
+    out_t = stream_toon.getvalue()
+    assert "[Fleet]" in out_t
+    assert "items[2]{Name,Role,Ready}:" in out_t
+    assert "Prism,UI,true" in out_t
+
+    # 3. Agent mode (default)
+    stream_agent = io.StringIO()
+    ui_agent = UI(app_name="test", stream=stream_agent, agent_mode=True)
+    ui_agent.data(headers=headers, rows=rows, title="Fleet")
+    out_a = stream_agent.getvalue()
+    assert "[Fleet]" in out_a
+    assert "items[2]{Name,Role,Ready}:" in out_a
+    assert "Prism,UI,true" in out_a
