@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import weakref
 from contextlib import contextmanager
-from typing import Any, Iterator, Sequence, TextIO
+from typing import Any, Iterator, Literal, Sequence, TextIO
 
 from prism.inputs import confirm_input, prompt_input
 from prism.menus import multiselect_menu, select_menu
@@ -333,6 +333,81 @@ class UI:
             styler=self.styler,
             stream=self.stream,
             searchable=searchable,
+        )
+
+    def searchbox(
+        self,
+        title: str = "Search",
+        options: Sequence[Any] = (),
+        prompt: str = "❯ ",
+        placeholder: str = "Type to search...",
+        limit: int = 10,
+    ) -> str | None:
+        from prism.searchbox import searchbox
+
+        return searchbox(
+            title=title,
+            options=options,
+            prompt=prompt,
+            placeholder=placeholder,
+            limit=limit,
+            styler=self.styler,
+            stream=self.stream,
+        )
+
+    # Tables & Banners
+    def table(
+        self,
+        headers: Sequence[str],
+        rows: Sequence[Sequence[Any]],
+        widths: Sequence[int | None] | None = None,
+        alignments: Sequence[Literal["left", "center", "right"]] | None = None,
+        style: Literal["rounded", "clean", "compact", "plain"] = "rounded",
+        max_width: int | None = None,
+        title: str | None = None,
+        border_color: str = "0;36",
+    ) -> str:
+        from prism.table import render_table
+
+        return render_table(
+            headers=headers,
+            rows=rows,
+            widths=widths,
+            alignments=alignments,
+            style=style,
+            max_width=max_width,
+            title=title,
+            border_color=border_color,
+            styler=self.styler,
+            stream=self.stream,
+        )
+
+    def serve_banner(
+        self,
+        title: str,
+        url: str,
+        target: str | None = None,
+        details: Sequence[tuple[str, str]] | dict[str, str] | None = None,
+        controls: Sequence[tuple[str, str]] | None = None,
+        warning: str | None = None,
+        tip: str | None = None,
+        border_color: str = "1;36",
+        width: int = 76,
+    ) -> None:
+        from prism.banner import render_serve_banner
+
+        render_serve_banner(
+            title=title,
+            url=url,
+            target=target,
+            details=details,
+            controls=controls,
+            warning=warning,
+            tip=tip,
+            border_color=border_color,
+            width=width,
+            styler=self.styler,
+            stream=self.stream,
         )
 
     # Helpers

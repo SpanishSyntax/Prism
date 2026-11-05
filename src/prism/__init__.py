@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from prism.banner import render_serve_banner
 from prism.color import (
     add_agent_args,
     add_color_args,
@@ -16,6 +17,7 @@ from prism.help import HelpBuilder, render_help
 from prism.inputs import confirm_input, prompt_input
 from prism.menus import multiselect_menu, select_menu
 from prism.panels import render_error_panel, render_panel
+from prism.searchbox import searchbox
 from prism.spinner import Spinner, spinner_context
 from prism.styling import (
     Styler,
@@ -27,6 +29,7 @@ from prism.styling import (
     get_json_env,
     get_toon_env,
 )
+from prism.table import render_table
 from prism.terminal import (
     cbreak_mode,
     get_key,
@@ -39,7 +42,7 @@ from prism.terminal import (
 )
 from prism.toon import encode_toon, format_scalar
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "UI",
@@ -67,6 +70,9 @@ __all__ = [
     "detect_color_support",
     "render_panel",
     "render_error_panel",
+    "render_serve_banner",
+    "render_table",
+    "searchbox",
     "prompt_input",
     "confirm_input",
     "select_menu",
