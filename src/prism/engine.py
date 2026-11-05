@@ -83,6 +83,24 @@ class UI:
     def is_interactive(self) -> bool:
         return self.styler.is_interactive
 
+    @staticmethod
+    def check_agent_env() -> bool:
+        from prism.styling import check_agent_env
+
+        return check_agent_env()
+
+    @staticmethod
+    def check_json_env() -> bool:
+        from prism.styling import check_json_env
+
+        return check_json_env()
+
+    @staticmethod
+    def check_toon_env() -> bool:
+        from prism.styling import check_toon_env
+
+        return check_toon_env()
+
     @property
     def use_color(self) -> bool:
         return self.styler.use_color
