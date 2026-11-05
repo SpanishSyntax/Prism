@@ -90,9 +90,3 @@ def render_status_card(
         styler=st,
         stream=out,
     )
-
-
-# Standard and backwards-compatible aliases
-render_card = render_status_card
-render_banner = render_status_card
-render_serve_banner = render_status_card

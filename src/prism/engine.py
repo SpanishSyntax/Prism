@@ -410,11 +410,6 @@ class UI:
             stream=self.stream,
         )
 
-    # Aliases for status_card
-    card = status_card
-    banner = status_card
-    serve_banner = status_card
-
     # Helpers
     @staticmethod
     def strip_ansi(text: str) -> str:

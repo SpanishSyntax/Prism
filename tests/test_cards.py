@@ -1,7 +1,7 @@
-"""Unit tests for Prism status cards, banners, and searchbox."""
+"""Unit tests for Prism status cards and searchbox."""
 
 import io
-from prism import UI, render_card, render_serve_banner, render_status_card, searchbox
+from prism import UI, render_status_card, searchbox
 from prism.styling import Styler
 
 
@@ -63,10 +63,10 @@ def test_searchbox_agent_mode_fallback():
     assert chosen == "opt1"
 
 
-def test_ui_serve_banner_method():
+def test_ui_status_card_method():
     out = io.StringIO()
     ui = UI(app_name="lantern", color_mode="never", agent_mode=True, stream=out)
-    ui.serve_banner(
+    ui.status_card(
         title="Test Server",
         url="http://localhost:3000",
     )
