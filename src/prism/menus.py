@@ -9,7 +9,6 @@ from prism.styling import Styler
 from prism.terminal import (
     get_terminal_size,
     read_key,
-    strip_ansi,
     visual_len,
 )
 
@@ -210,9 +209,7 @@ def select_menu(
         for _ in range(rendered_lines):
             out.write("\033[2K\r\n")
         out.write(f"\033[{rendered_lines}A\r")
-        out.write(
-            f"{st.badge()} {st.dim(title)} {st.bold_green(items[current][1])}\n"
-        )
+        out.write(f"{st.badge()} {st.dim(title)} {st.bold_green(items[current][1])}\n")
         out.flush()
         return items[current][0]
     finally:
@@ -321,8 +318,9 @@ def multiselect_menu(
                     else f"  {st.bold_cyan('🔍 Search:')} {st.bold(search_query)}█"
                 )
             else:
+                filter_text = f'Filter: "{search_query}"'
                 filter_badge = (
-                    f"  {st.yellow(f'Filter: \"{search_query}\"')} {st.dim('(/ to edit, Esc to clear)')} | "
+                    f"  {st.yellow(filter_text)} {st.dim('(/ to edit, Esc to clear)')} | "
                     if search_query
                     else "  "
                 )

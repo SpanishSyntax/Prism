@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Sequence
+from typing import TYPE_CHECKING, Sequence
 
 if TYPE_CHECKING:
     from prism.styling import Styler
@@ -195,9 +195,7 @@ def render_help(
     is_agent: bool | None = None,
 ) -> str:
     """Helper function to declaratively render styled help documentation."""
-    hb = HelpBuilder(
-        app_name=app_name, tagline=tagline, version=version, styler=styler
-    )
+    hb = HelpBuilder(app_name=app_name, tagline=tagline, version=version, styler=styler)
     hb.set_usage(usage)
     if commands:
         hb.add_commands(commands)

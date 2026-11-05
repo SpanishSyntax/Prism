@@ -256,11 +256,18 @@ class Styler:
 
     def error(self, msg: str) -> None:
         if self._json_mode:
-            print(json.dumps({"status": "error", "error": strip_ansi(msg)}), file=sys.stderr)
+            print(
+                json.dumps({"status": "error", "error": strip_ansi(msg)}),
+                file=sys.stderr,
+            )
             return
         if self._toon_mode:
             from prism.toon import encode_toon
-            print(encode_toon({"status": "error", "error": strip_ansi(msg)}), file=sys.stderr)
+
+            print(
+                encode_toon({"status": "error", "error": strip_ansi(msg)}),
+                file=sys.stderr,
+            )
             return
         if self._agent_mode:
             print(f"{self.badge()} [error] {msg}", file=sys.stderr)
@@ -294,7 +301,11 @@ class Styler:
             else:
                 payload = data
         else:
-            payload = {"status": status or "ok", "value": data} if status is not None else data
+            payload = (
+                {"status": status or "ok", "value": data}
+                if status is not None
+                else data
+            )
 
         print(json.dumps(payload, indent=indent, default=str), file=self.stream)
         if exit_code is not None:
@@ -321,7 +332,11 @@ class Styler:
             else:
                 payload = data
         else:
-            payload = {"status": status or "ok", "value": data} if status is not None else data
+            payload = (
+                {"status": status or "ok", "value": data}
+                if status is not None
+                else data
+            )
 
         print(encode_toon(payload, delimiter=delimiter), file=self.stream)
         if exit_code is not None:

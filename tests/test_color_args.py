@@ -1,4 +1,5 @@
 import argparse
+
 from prism.color import add_color_args, apply_color_args, handle_color_args
 from prism.engine import UI
 

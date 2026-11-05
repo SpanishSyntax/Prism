@@ -1,4 +1,5 @@
 import io
+
 from prism.inputs import confirm_input, prompt_input
 from prism.styling import Styler
 

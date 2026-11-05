@@ -1,5 +1,5 @@
 import io
-import time
+
 from prism.spinner import Spinner, spinner_context
 from prism.styling import Styler
 

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from contextlib import contextmanager
 import weakref
+from contextlib import contextmanager
 from typing import Any, Iterator, Sequence, TextIO
 
 from prism.inputs import confirm_input, prompt_input
@@ -12,7 +12,6 @@ from prism.panels import render_error_panel, render_panel
 from prism.spinner import Spinner
 from prism.styling import Styler
 from prism.terminal import get_terminal_columns, strip_ansi, visual_len
-
 
 _registered_instances: list[weakref.ref[UI]] = []
 
@@ -64,7 +63,9 @@ class UI:
     def set_agent_mode(
         self, agent: bool = True, json_output: bool = False, toon_output: bool = False
     ) -> None:
-        self.styler.set_agent_mode(agent=agent, json_output=json_output, toon_output=toon_output)
+        self.styler.set_agent_mode(
+            agent=agent, json_output=json_output, toon_output=toon_output
+        )
 
     @property
     def is_agent(self) -> bool:
@@ -168,7 +169,9 @@ class UI:
         delimiter: str = ",",
         exit_code: int | None = None,
     ) -> None:
-        self.styler.toon(data=data, status=status, delimiter=delimiter, exit_code=exit_code)
+        self.styler.toon(
+            data=data, status=status, delimiter=delimiter, exit_code=exit_code
+        )
 
     def version(self, version_str: str, app_name: str | None = None) -> None:
         self.styler.version(version_str=version_str, app_name=app_name)

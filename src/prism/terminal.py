@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io
 import os
 import re
 import select
@@ -178,5 +179,3 @@ def read_key(
 # Raw mode and cbreak mode aliases
 cbreak_mode = raw_mode
 get_key = read_key
-
-

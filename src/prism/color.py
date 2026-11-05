@@ -69,7 +69,8 @@ def handle_color_args(
 
     Returns the resolved color mode: 'auto', 'always', or 'never'.
     """
-    from prism.engine import get_all_ui_instances, ui as default_ui
+    from prism.engine import get_all_ui_instances
+    from prism.engine import ui as default_ui
     from prism.styling import check_agent_env, check_json_env, check_toon_env
 
     target_uis = [ui] if ui is not None else get_all_ui_instances()
@@ -108,7 +109,9 @@ def handle_color_args(
 
     for target_ui in target_uis:
         if is_agent:
-            target_ui.set_agent_mode(agent=True, json_output=is_json, toon_output=is_toon)
+            target_ui.set_agent_mode(
+                agent=True, json_output=is_json, toon_output=is_toon
+            )
         target_ui.set_color_mode(mode)
 
     return mode
@@ -122,7 +125,8 @@ def apply_color_args(
     Applies parsed arguments (--color and --no-color) to a UI instance.
     Returns the resolved color mode: 'auto', 'always', or 'never'.
     """
-    from prism.engine import get_all_ui_instances, ui as default_ui
+    from prism.engine import get_all_ui_instances
+    from prism.engine import ui as default_ui
 
     target_uis = [ui] if ui is not None else get_all_ui_instances()
     if not target_uis:
@@ -179,7 +183,8 @@ def handle_agent_args(
     Scans raw command-line argv for --agent, -A, --json, --toon flags and environment variables.
     Returns (is_agent, is_json).
     """
-    from prism.engine import get_all_ui_instances, ui as default_ui
+    from prism.engine import get_all_ui_instances
+    from prism.engine import ui as default_ui
     from prism.styling import check_agent_env, check_json_env, check_toon_env
 
     target_uis = [ui] if ui is not None else get_all_ui_instances()
@@ -201,7 +206,9 @@ def handle_agent_args(
 
     for target_ui in target_uis:
         if is_agent:
-            target_ui.set_agent_mode(agent=True, json_output=is_json, toon_output=is_toon)
+            target_ui.set_agent_mode(
+                agent=True, json_output=is_json, toon_output=is_toon
+            )
 
     return is_agent, is_json
 
@@ -213,7 +220,8 @@ def apply_agent_args(
     """
     Applies parsed arguments (--agent, --json, and --toon) to a UI instance.
     """
-    from prism.engine import get_all_ui_instances, ui as default_ui
+    from prism.engine import get_all_ui_instances
+    from prism.engine import ui as default_ui
     from prism.styling import check_agent_env, check_json_env, check_toon_env
 
     target_uis = [ui] if ui is not None else get_all_ui_instances()
@@ -226,7 +234,9 @@ def apply_agent_args(
 
     for target_ui in target_uis:
         if is_agent:
-            target_ui.set_agent_mode(agent=True, json_output=is_json, toon_output=is_toon)
+            target_ui.set_agent_mode(
+                agent=True, json_output=is_json, toon_output=is_toon
+            )
 
     return is_agent, is_json
 
@@ -241,7 +251,8 @@ def handle_version_arg(
 
     If matched, outputs the standardized version string/JSON via ui.version() and returns True.
     """
-    from prism.engine import get_all_ui_instances, ui as default_ui
+    from prism.engine import get_all_ui_instances
+    from prism.engine import ui as default_ui
 
     if ui is not None:
         target_ui = ui

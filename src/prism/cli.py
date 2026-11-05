@@ -8,7 +8,7 @@ import time
 
 from prism import __version__
 from prism.color import add_color_args, handle_color_args
-from prism.engine import UI, ui
+from prism.engine import ui
 
 
 def run_showcase() -> int:
@@ -17,7 +17,9 @@ def run_showcase() -> int:
         "PRISM CLI DESIGN SYSTEM",
         [
             ui.bold_cyan("Unified Terminal UI Framework for Frost Icebergs"),
-            ui.dim("Zero dependencies • ANSI styling • Bounding boxes • Spinners • Menus"),
+            ui.dim(
+                "Zero dependencies • ANSI styling • Bounding boxes • Spinners • Menus"
+            ),
             "",
             f"  {ui.cyan('• Badges:')}  {ui.badge()}  ❄️ [folio]  🌌 [borealis]  🧊 [cryo]  ✨ [glaze]",
             f"  {ui.cyan('• Colors:')}  {ui.bold_green('success')} {ui.bold_cyan('action')} {ui.yellow('warning')} {ui.red('error')}",

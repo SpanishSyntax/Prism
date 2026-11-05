@@ -2,13 +2,10 @@
 
 import argparse
 import io
-import os
-import pytest
 
 from prism import (
     UI,
     add_agent_args,
-    apply_agent_args,
     check_agent_env,
     confirm_input,
     handle_agent_args,
@@ -17,7 +14,6 @@ from prism import (
     render_error_panel,
     render_panel,
     select_menu,
-    strip_ansi,
 )
 from prism.styling import Styler
 
@@ -61,7 +57,9 @@ def test_styler_agent_mode_outputs():
 def test_panel_agent_mode_strips_emojis():
     stream = io.StringIO()
     styler = Styler(app_name="basecamp", icon="⛺", stream=stream, agent_mode=True)
-    render_panel("⛺  Basecamp Roles Registry", ["Role: snowpack"], styler=styler, stream=stream)
+    render_panel(
+        "⛺  Basecamp Roles Registry", ["Role: snowpack"], styler=styler, stream=stream
+    )
 
     out = stream.getvalue()
     assert "=== Basecamp Roles Registry ===" in out
@@ -72,7 +70,12 @@ def test_panel_agent_mode_strips_emojis():
 def test_panel_agent_mode():
     stream = io.StringIO()
     styler = Styler(app_name="basecamp", icon="⛺", stream=stream, agent_mode=True)
-    render_panel("SYSTEM STATUS", ["Service: Nominal", "Version: 1.0.0"], styler=styler, stream=stream)
+    render_panel(
+        "SYSTEM STATUS",
+        ["Service: Nominal", "Version: 1.0.0"],
+        styler=styler,
+        stream=stream,
+    )
 
     out = stream.getvalue()
     assert "=== SYSTEM STATUS ===" in out
@@ -87,7 +90,12 @@ def test_panel_agent_mode():
 def test_error_panel_agent_mode():
     stream = io.StringIO()
     styler = Styler(app_name="borealis", icon="🌌", stream=stream, agent_mode=True)
-    render_error_panel("CRITICAL ERROR", ["Connection refused", "Port 8080 unreachable"], styler=styler, stream=stream)
+    render_error_panel(
+        "CRITICAL ERROR",
+        ["Connection refused", "Port 8080 unreachable"],
+        styler=styler,
+        stream=stream,
+    )
 
     out = stream.getvalue()
     assert "ERROR: CRITICAL ERROR" in out
@@ -109,10 +117,17 @@ def test_inputs_non_blocking_in_agent_mode():
 def test_menus_non_blocking_in_agent_mode():
     styler = Styler(app_name="snowpack", agent_mode=True)
 
-    choice = select_menu("Select compiler mode:", [("typst", "Typst"), ("latex", "LaTeX")], default_index=1, styler=styler)
+    choice = select_menu(
+        "Select compiler mode:",
+        [("typst", "Typst"), ("latex", "LaTeX")],
+        default_index=1,
+        styler=styler,
+    )
     assert choice == "latex"
 
-    multi = multiselect_menu("Pick assets:", ["a.png", "b.png"], preselected=["b.png"], styler=styler)
+    multi = multiselect_menu(
+        "Pick assets:", ["a.png", "b.png"], preselected=["b.png"], styler=styler
+    )
     assert multi == ["b.png"]
 
 

@@ -1,4 +1,5 @@
 import io
+
 from prism.styling import Styler, detect_color_support
 
 
@@ -16,7 +17,13 @@ def test_detect_color_support(monkeypatch):
 
 def test_styler_formatting():
     buf = io.StringIO()
-    st = Styler(app_name="iceberg", icon="❄️", badge_color="1;34", color_mode="always", stream=buf)
+    st = Styler(
+        app_name="iceberg",
+        icon="❄️",
+        badge_color="1;34",
+        color_mode="always",
+        stream=buf,
+    )
 
     assert "iceberg" in st.badge()
     assert "❄️" in st.badge()

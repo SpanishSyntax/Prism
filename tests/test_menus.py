@@ -1,4 +1,5 @@
 import io
+
 from prism.menus import fit_line, multiselect_menu, normalize_options, select_menu
 from prism.styling import Styler
 
@@ -23,7 +24,9 @@ def test_fit_line():
     assert "Title" in line
     assert "Some description" in line
 
-    truncated = fit_line("  > ", "Title", "Title", "Super long description " * 5, max_w=20, styler=st)
+    truncated = fit_line(
+        "  > ", "Title", "Title", "Super long description " * 5, max_w=20, styler=st
+    )
     assert "..." in truncated
 
 
@@ -48,6 +51,7 @@ def test_multiselect_menu_non_tty(monkeypatch):
 
     # When input is empty, keep preselected
     monkeypatch.setattr("builtins.input", lambda _: "")
-    res_default = multiselect_menu("Choose multiple", options, preselected=["b"], styler=st, stream=buf)
+    res_default = multiselect_menu(
+        "Choose multiple", options, preselected=["b"], styler=st, stream=buf
+    )
     assert res_default == ["b"]
-

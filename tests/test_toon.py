@@ -31,7 +31,9 @@ def test_format_scalar_strings() -> None:
     # Needs quotes: delimiter or structural chars
     assert format_scalar("foo,bar") == '"foo,bar"'
     assert format_scalar("key:val") == '"key:val"'
-    assert format_scalar("hello world") == "hello world"  # spaces inside are allowed if no leading/trailing
+    assert (
+        format_scalar("hello world") == "hello world"
+    )  # spaces inside are allowed if no leading/trailing
     assert format_scalar(" space ") == '" space "'
 
 
@@ -43,10 +45,7 @@ def test_tabular_array_encoding() -> None:
     ]
     encoded = encode_toon(tools)
     expected = (
-        "items[3]{name,pack,enabled}:\n"
-        "  ls,fs,true\n"
-        "  cat,fs,true\n"
-        "  grep,fs,false"
+        "items[3]{name,pack,enabled}:\n  ls,fs,true\n  cat,fs,true\n  grep,fs,false"
     )
     assert encoded == expected
 
@@ -61,13 +60,7 @@ def test_dict_with_tabular_array() -> None:
         ],
     }
     encoded = encode_toon(data)
-    expected = (
-        "status: ok\n"
-        "count: 2\n"
-        "tools[2]{name,pack}:\n"
-        "  ls,fs\n"
-        "  cat,fs"
-    )
+    expected = "status: ok\ncount: 2\ntools[2]{name,pack}:\n  ls,fs\n  cat,fs"
     assert encoded == expected
 
 

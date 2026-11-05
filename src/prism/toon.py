@@ -41,7 +41,11 @@ def format_scalar(val: Any, delimiter: str = ",") -> str:
         # Canonical decimal representation
         if val.is_integer():
             return f"{val:.1f}"
-        return f"{val:.6g}".rstrip("0").rstrip(".") if "." in f"{val:.6g}" else f"{val:.6g}"
+        return (
+            f"{val:.6g}".rstrip("0").rstrip(".")
+            if "." in f"{val:.6g}"
+            else f"{val:.6g}"
+        )
 
     s = str(val)
     # String quoting rules:
@@ -71,7 +75,13 @@ def format_scalar(val: Any, delimiter: str = ",") -> str:
         return s
 
     # Escape quotes and backslashes
-    escaped = s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t")
+    escaped = (
+        s.replace("\\", "\\\\")
+        .replace('"', '\\"')
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
+    )
     return f'"{escaped}"'
 
 
@@ -133,13 +143,17 @@ def encode_toon(data: Any, delimiter: str = ",", indent_level: int = 0) -> str:
             keys_header = delimiter.join(keys)
             lines = [f"items[{count}]{{{keys_header}}}:"]
             for row in data:
-                row_vals = delimiter.join(format_scalar(row.get(k), delimiter=delimiter) for k in keys)
+                row_vals = delimiter.join(
+                    format_scalar(row.get(k), delimiter=delimiter) for k in keys
+                )
                 lines.append(f"  {row_vals}")
             return "\n".join(lines)
 
         # Inline array of scalars
         if all(_is_scalar(x) for x in data):
-            vals_str = delimiter.join(format_scalar(x, delimiter=delimiter) for x in data)
+            vals_str = delimiter.join(
+                format_scalar(x, delimiter=delimiter) for x in data
+            )
             return f"items[{count}]: {vals_str}"
 
         # General list
@@ -148,10 +162,14 @@ def encode_toon(data: Any, delimiter: str = ",", indent_level: int = 0) -> str:
             if _is_scalar(it):
                 lines.append(f"  - {format_scalar(it, delimiter=delimiter)}")
             elif isinstance(it, dict):
-                sub = encode_toon(it, delimiter=delimiter, indent_level=indent_level + 1)
+                sub = encode_toon(
+                    it, delimiter=delimiter, indent_level=indent_level + 1
+                )
                 lines.append(f"  -\n{sub}")
             else:
-                sub = encode_toon(it, delimiter=delimiter, indent_level=indent_level + 1)
+                sub = encode_toon(
+                    it, delimiter=delimiter, indent_level=indent_level + 1
+                )
                 lines.append(f"  - {sub}")
         return "\n".join(lines)
 
@@ -166,7 +184,9 @@ def encode_toon(data: Any, delimiter: str = ",", indent_level: int = 0) -> str:
 
             # Scalar value
             if _is_scalar(v):
-                lines.append(f"{indent}{key_str}: {format_scalar(v, delimiter=delimiter)}")
+                lines.append(
+                    f"{indent}{key_str}: {format_scalar(v, delimiter=delimiter)}"
+                )
 
             # List value
             elif isinstance(v, (list, tuple)):
@@ -180,24 +200,35 @@ def encode_toon(data: Any, delimiter: str = ",", indent_level: int = 0) -> str:
                     cols_header = delimiter.join(col_keys)
                     lines.append(f"{indent}{key_str}[{count}]{{{cols_header}}}:")
                     for row in v:
-                        row_vals = delimiter.join(format_scalar(row.get(ck), delimiter=delimiter) for ck in col_keys)
+                        row_vals = delimiter.join(
+                            format_scalar(row.get(ck), delimiter=delimiter)
+                            for ck in col_keys
+                        )
                         lines.append(f"{indent}  {row_vals}")
 
                 elif all(_is_scalar(x) for x in v):
-                    vals_str = delimiter.join(format_scalar(x, delimiter=delimiter) for x in v)
+                    vals_str = delimiter.join(
+                        format_scalar(x, delimiter=delimiter) for x in v
+                    )
                     lines.append(f"{indent}{key_str}[{count}]: {vals_str}")
 
                 else:
                     lines.append(f"{indent}{key_str}[{count}]:")
                     for item in v:
                         if _is_scalar(item):
-                            lines.append(f"{indent}  - {format_scalar(item, delimiter=delimiter)}")
+                            lines.append(
+                                f"{indent}  - {format_scalar(item, delimiter=delimiter)}"
+                            )
                         elif isinstance(item, dict):
                             lines.append(f"{indent}  -")
-                            nested_str = encode_toon(item, delimiter=delimiter, indent_level=indent_level + 2)
+                            nested_str = encode_toon(
+                                item, delimiter=delimiter, indent_level=indent_level + 2
+                            )
                             lines.append(nested_str)
                         else:
-                            nested_str = encode_toon(item, delimiter=delimiter, indent_level=indent_level + 1)
+                            nested_str = encode_toon(
+                                item, delimiter=delimiter, indent_level=indent_level + 1
+                            )
                             lines.append(f"{indent}  - {nested_str}")
 
             # Nested dict value
@@ -206,11 +237,15 @@ def encode_toon(data: Any, delimiter: str = ",", indent_level: int = 0) -> str:
                     lines.append(f"{indent}{key_str}: {{}}")
                 else:
                     lines.append(f"{indent}{key_str}:")
-                    nested_str = encode_toon(v, delimiter=delimiter, indent_level=indent_level + 1)
+                    nested_str = encode_toon(
+                        v, delimiter=delimiter, indent_level=indent_level + 1
+                    )
                     lines.append(nested_str)
 
             else:
-                lines.append(f"{indent}{key_str}: {format_scalar(str(v), delimiter=delimiter)}")
+                lines.append(
+                    f"{indent}{key_str}: {format_scalar(str(v), delimiter=delimiter)}"
+                )
 
         return "\n".join(lines)
 
