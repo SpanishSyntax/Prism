@@ -12,23 +12,15 @@ CLI tooling in modern systems engineering typically suffers from one of two fail
 
 Prism resolves this trade-off by operating with **zero runtime dependencies** beyond standard library POSIX primitives (`termios`, `tty`, `select`, `shutil`, `threading`, `sys`, `os`).
 
-```
-                    ┌─────────────────────────┐
-                    │      Prism Facade       │
-                    │       (prism.UI)        │
-                    └────────────┬────────────┘
-                                 │
-     ┌───────────────────────────┼───────────────────────────┐
-     │                           │                           │
-┌────┴────────────┐     ┌────────┴──────────┐     ┌──────────┴────────┐
-│  Human Terminal │     │    Agent Mode     │     │ Structured Output │
-│   (ANSI/TTY)    │     │   (Token Dense)   │     │    (JSON/TOON)    │
-├─────────────────┤     ├───────────────────┤     ├───────────────────┤
-│ • Rounded boxes │     │ • Stripped ANSI   │     │ • RFC-8259 JSON   │
-│ • Braille spin  │     │ • Zero emojis     │     │ • TOON serialization│
-│ • TrueColor     │     │ • Single-line KV  │     │ • Schema validation│
-│ • Key menus     │     │ • Minimal tokens  │     │ • Exit code binding│
-└─────────────────┘     └───────────────────┘     └───────────────────┘
+```mermaid
+flowchart TD
+    Facade["Prism Facade (prism.UI)"] --> Human["Human Terminal (ANSI / TTY)"]
+    Facade --> Agent["Agent Mode (Token Dense)"]
+    Facade --> Struct["Structured Output (JSON / TOON)"]
+
+    Human --> HDetails["Rounded boxes, Braille spinner, TrueColor, Interactive menus"]
+    Agent --> ADetails["Stripped ANSI, Zero emojis, Single-line KV, Minimal tokens"]
+    Struct --> SDetails["RFC-8259 JSON, TOON serialization, Schema validation"]
 ```
 
 ---
